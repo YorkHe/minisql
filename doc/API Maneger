@@ -1,0 +1,5 @@
+//其主要函数的功能描述如下：
+
+bool Verify_catelory(statement sql);   //结合category模块提供的接口继续验证语句合法性
+
+void Excute_SQL(statement);      //结合Record Manager，Index Manager，Catalog Manage模块提供的接口执行语句
