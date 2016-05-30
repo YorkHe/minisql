@@ -30,7 +30,7 @@ private:
 	buffer buffer_block[BLOCK_NUMBER];	//BufferManager类的私有成员变量是Buffer类对象数组,BLOCK_NUMBER是一个宏，是缓存区的块数
 public:
 
-	void flashBack(int bufferNum);替换参数是用LRU规则计算出来的最少使用的快，要被替换。
+	void flashBack(int bufferNum);//替换参数是用LRU规则计算出来的最少使用的快，要被替换。
 
 	int getBufferNum(string file_name, int block_offset);
 	//索引管理、记录管理向缓存区申请某文件的某块，如果它在缓存区内，则返回在缓存区的位置，
