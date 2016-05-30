@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="源文件\CatalogManager">
+      <UniqueIdentifier>{3946f070-bf6a-4ded-a50c-e1a22787e386}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\IndexManager">
+      <UniqueIdentifier>{e42de42e-9b1f-4b3a-9530-9b79a34214df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\RecordManager">
+      <UniqueIdentifier>{72604a8f-3ef5-4289-92d6-69c2c05aed03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\BufferManager">
+      <UniqueIdentifier>{55776cce-814b-4984-a78a-f2638cc09f18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Interpreter">
+      <UniqueIdentifier>{378a3a0e-103a-44f7-94a8-a56a14ddbc24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\API">
+      <UniqueIdentifier>{352744d9-25e9-47fa-8a2d-00aab2686fca}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\CatalogManger\CatalogManager.cpp">
+      <Filter>源文件\CatalogManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\IndexManager\IndexManager.cpp">
+      <Filter>源文件\IndexManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\RecordManager\RecordManager.cpp">
+      <Filter>源文件\RecordManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\BufferManager\BufferManager.cpp">
+      <Filter>源文件\BufferManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Interpreter\Interpreter.cpp">
+      <Filter>源文件\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\API\API.cpp">
+      <Filter>源文件\API</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\CatalogManger\CatalogManger.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\IndexManager\IndexManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\RecordManager\RecordManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\BufferManager\BufferManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Interpreter\Interpreter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\API\API.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
