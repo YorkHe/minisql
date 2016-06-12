@@ -1,3 +1,5 @@
+#define BLOCK_SIZE 4096
+
 class buffer { //缓存块类，一个对象表示一个块
 
 private:
