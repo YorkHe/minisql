@@ -97,18 +97,21 @@ public:
 //create_database类
 class SQLcreate_database
 {
+public:
     string database_name;
 };
 
 //drop_database类
 class SQLdrop_database
 {
+public:
     string database_name;
 };
 
 //use_database类
 class SQLuse_database
 {
+public:
     string database_name;
 };
 
