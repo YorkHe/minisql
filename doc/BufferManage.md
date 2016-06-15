@@ -45,6 +45,9 @@ public:
 	//缓存区从DB Files读取数据，参数：buffer_num(读取目的块），file_name(读取文件源),block_offset(读取文件源的具体位置）
 
 	int getFreeBuffer();//返回缓存区空闲的块的位置，如果缓冲区满时，则选择LRU大的块
+	
+	int getFreeBuffer(int file_name);///读取该块从begin到end位置的数据，参数是起始位置和终止
+位置
 
 	int checkInBuffer(string file_name, int block_offset);//判断文件的某一块是否在缓存区内
 
