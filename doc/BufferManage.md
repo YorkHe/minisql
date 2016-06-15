@@ -50,6 +50,8 @@ public:
 
 	void writeAll(string filename,int file_buffer_number);//表格文件和索引文件都可以归为普通文件，参数是文件名，和文件的块数
 	
+	void updateLRU(int buffer_number);
+	
 
 
 };
