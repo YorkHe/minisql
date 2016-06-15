@@ -44,14 +44,12 @@ public:
 	void readBlock(string file_name, int block_offset, int buffer_num);
 	//缓存区从DB Files读取数据，参数：buffer_num(读取目的块），file_name(读取文件源),block_offset(读取文件源的具体位置）
 
-	int getFreeBuffer();//返回缓存区空闲的块的位置，如果缓冲区满时，则选择LRU的块
+	int getFreeBuffer();//返回缓存区空闲的块的位置，如果缓冲区满时，则选择LRU大的块
 
 	int checkInBuffer(string file_name, int block_offset);//判断文件的某一块是否在缓存区内
 
-	void writeAll(Table& table);//将文件区一个表格文件的所有数据写入缓存区
+	void writeAll(string filename,int file_buffer_number);//表格文件和索引文件都可以归为普通文件，参数是文件名，和文件的块数
 	
-	void writeAll(Index& index);//将文件区一个索引文件的所有数据写入缓存区
-
 
 
 };
