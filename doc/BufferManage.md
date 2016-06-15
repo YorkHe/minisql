@@ -46,10 +46,6 @@ public:
 
 	int getFreeBuffer();//返回缓存区空闲的块的位置，如果缓冲区满时，则选择LRU的块
 
-	int writeOneBlock(Table& table);//将文件区表格文件的某一块写入到缓存区的某一空闲块，返回写入的位置
-
-	int writeOneBlock(Index& index);//将文件区索引文件的某一块写入到缓存区的某一空闲块，返回写入的位置
-
 	int checkInBuffer(string file_name, int block_offset);//判断文件的某一块是否在缓存区内
 
 	void writeAll(Table& table);//将文件区一个表格文件的所有数据写入缓存区
