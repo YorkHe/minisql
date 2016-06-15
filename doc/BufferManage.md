@@ -50,7 +50,7 @@ public:
 
 	void writeAll(string filename,int file_buffer_number);//表格文件和索引文件都可以归为普通文件，参数是文件名，和文件的块数
 	
-	void updateLRU(int buffer_number);
+	void updateLRU(int buffer_number);//当访问缓存区的某块后，就需要调用这个函数，用来更新LRU.
 	
 
 
