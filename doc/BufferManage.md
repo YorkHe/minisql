@@ -34,7 +34,7 @@ private:
 	buffer buffer_block[BLOCK_NUMBER];	//BufferManager类的私有成员变量是Buffer类对象数组,BLOCK_NUMBER是一个宏，是缓存区的块数
 public:
 
-	void flashBack(int bufferNum);//替换参数是用LRU规则计算出来的最少使用的快，要被替换。
+	void flashBack(int buffer_num);//替换参数是用LRU规则计算出来的最少使用的快，要被替换。
 
 	int getBufferNum(string file_name, int block_offset);
 	//索引管理、记录管理向缓存区申请某文件的某块，如果它在缓存区内，则返回在缓存区的位置，
@@ -50,15 +50,17 @@ public:
 
 	int checkInBuffer(string file_name, int block_offset);//判断文件的某一块是否在缓存区内
 
-	void writeAll(string filename,int file_buffer_number);//表格文件和索引文件都可以归为普通文件，参数是文件名，和文件的块数
+	void writeAll(string filename,int file_buffer_num);//表格文件和索引文件都可以归为普通文件，参数是文件名，和文件的块数
 	
-	void updateLRU(int buffer_number);//当访问缓存区的某块后，就需要调用这个函数，用来更新LRU.
+	void updateLRU(int buffer_num);//当访问缓存区的某块后，就需要调用这个函数，用来更新LRU.
 
-        void setWritten(int buffer_number);//当修改过缓存区某块后，就需要调用这个函数，来修改buffer的is_written 属性为1,void setWritten()会调用void updateLRU(),因为修改也是一种访问行为
+        void setWritten(int buffer_num);//当修改过缓存区某块后，就需要调用这个函数，来修改buffer的is_written 属性为1,void setWritten()会调用void updateLRU(),因为修改也是一种访问行为
 
-        void setLocked(int buffer_number);//大程要求锁定缓存区的页
+        void setLocked(int buffer_num);//大程要求锁定缓存区的块 
+      
+	void setUnLocked(int buffer_num);//解锁缓存区的块	
 
-        void setNotDataExist(int file_name); //如果一个文件被删除，则相应地在缓存区内懒惰删除，标记缓存区内属于该文件的块的is_data_exist为0，即不存在
+	  void setNotDataExist(int file_name); //如果一个文件被删除，则相应地在缓存区内懒惰删除，标记缓存区内属于该文件的块的is_data_exist为0，即不存在
 	
 
 
