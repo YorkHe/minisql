@@ -1,0 +1,6 @@
+﻿  stdafx.cpp
+  CatalogManagerUnitTest.cpp
+c:\users\yu\onedrive\大二下学期\db\minisql\test\test\catalogmanagerunittest.cpp(1): warning C4603: “BOOST_TEST_MODULE”: 未定义宏或在预编译头使用后定义发生改变
+  c:\users\yu\onedrive\大二下学期\db\minisql\test\test\catalogmanagerunittest.cpp(1): note: 将宏添加到预编译头中，而不是在此处定义
+  c:\users\yu\onedrive\大二下学期\db\minisql\test\test\catalogmanagerunittest.cpp(2): note: 使用预编译头
+LINK : fatal error LNK1104: 无法打开文件“CatalogManager.obj”
