@@ -22,6 +22,7 @@
 #define ERR_IDX_NOT_EXISTS 8
 #define ERR_ATTR_NOT_EXISTS 9
 #define ERR_REF_NOT_SAME_TYPE 10 
+#define ERR_ATTR_FORMAT_ERROR 11
 
 class CError
 {
