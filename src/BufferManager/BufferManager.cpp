@@ -5,10 +5,9 @@
  */
 BufferManager::BufferManager(string name)
 {
-	name = DB_PATH(name) + name;
 	dbName = name;
-	dbFileName = name + ".db";
-	infoFileName = name + ".info";
+	dbFileName = DB_FILE(name) + ".db";
+	infoFileName = DB_FILE(name)+ ".info";
 	dbFile.open(dbFileName, std::fstream::in | std::fstream::out);
 	if (!dbFile.is_open())
 	{
@@ -135,9 +134,9 @@ void BufferManager::readDbInfo()
 	{
 		infoFile.read(tableName, MAX_TABLE_NAME);
 		s = tableName;
-		infoFile.read((char *)offset, sizeof(int));
+		infoFile.read(reinterpret_cast<char*>(offset), sizeof(int));
 		firstBlock.insert(pair<string, int>(s, offset));
-		infoFile.read((char *)offset, sizeof(int));
+		infoFile.read(reinterpret_cast<char*>(offset), sizeof(int));
 		lastBlock.insert(pair<string, int>(s, offset));
 	}
 }
@@ -156,9 +155,9 @@ void BufferManager::writeDbInfo()
 	{
 		//cout << (char *)((i->first).c_str()) << (i->first).size() << endl;
 		//cout << (i->second) << endl;
-		infoFile.write((char *)((i->first).c_str()), (i->first).size());
-		infoFile.write((char *)&(i->second), sizeof(int));
-		infoFile.write((char *)&(j->second), sizeof(int));
+		infoFile.write((i->first).c_str(), (i->first).size());
+		infoFile.write(reinterpret_cast<char *>(&(i->second)), sizeof(int));
+		infoFile.write(reinterpret_cast<char *>(&(j->second)), sizeof(int));
 	}
 }
 
@@ -230,7 +229,7 @@ Block& BufferManager::newBlock(string tableName)
 	}
 
 	//查找LastOffset，读最后一块，设置它的nextoffset为新块的offset，设置dirty
-	for (i = lastBlock.begin(); i != lastBlock.end(); i ++)
+	for (i = lastBlock.begin(); i != lastBlock.end(); ++i)
 	{
 		if (tableName == i->first)
 		{
@@ -257,7 +256,7 @@ Block& BufferManager::newBlock(string tableName)
 void BufferManager::debug(bool isContent = false)
 {
 	cout << "BUFFER" << endl;
-	for (list<Block>::iterator i = buffer.begin(); i != buffer.end(); i ++)
+	for (list<Block>::iterator i = buffer.begin(); i != buffer.end(); ++i)
 	{
 		i->debug(isContent);
 	}
