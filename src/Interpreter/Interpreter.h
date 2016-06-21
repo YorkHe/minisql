@@ -16,7 +16,7 @@ public:
 };
 
 //条件类
-class condition
+class CONDITION
 {
 public:
 	string column;       //属性（列）名
@@ -25,6 +25,7 @@ public:
 	int value1;          //整型的值
 	string value2;     //字符串型的值
     float value3;        //单精度浮点数型的值
+    string value;
 };
 
 //select类
@@ -32,7 +33,7 @@ class SQLselect
 {
 public:
 	string table_name;  //表名
-	condition select_condition[32];  //选择的条件
+	CONDITION select_condition[32];  //选择的条件
 	int condition_num;   //条件的个数
 };
 
@@ -41,7 +42,7 @@ class SQLdelete
 {
 public:
 	string table_name;  //表名
-	condition delete_condition[32];  //选择的条件
+	CONDITION delete_condition[32];  //选择的条件
 	int condition_num;   //条件的个数
 };
 
@@ -50,7 +51,7 @@ class SQLinsert
 {
 public:
 	string table_name;  //表名
-	condition Insert_values[32];//插入的值
+	CONDITION Insert_values[32];//插入的值
 	int Values_num;   //值的个数
 };
 
@@ -135,6 +136,6 @@ public:
 //主要函数：
 
 //获取用户输入，并对输入进行解析，解析过程中对语句进行语法判断，返回内部语句格式
-statement  Read_Interpreter(char input[]);
+statement Read_Interpreter(char input[]);
 
 #endif // Interpreter_H
