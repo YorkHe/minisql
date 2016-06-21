@@ -33,6 +33,12 @@ bool CatalogManager::checkDatabaseExists(string DB_name)
 	return fs::exists(db_path);
 }
 
+bool CatalogManager::checkTableExists(string DB_name, string table_name)
+{
+	fs::path table_path(TABLE_PATH(DB_name, table_name));
+	return fs::exists(table_path);
+}
+
 CError CatalogManager::createTable(string DB_name, string table_name, vector<Attr> attrs)
 {
 	if (!checkDatabaseExists(DB_name))
@@ -73,7 +79,7 @@ CError CatalogManager::createTable(string DB_name, string table_name, vector<Att
 
 CError CatalogManager::createTable(string table_name, vector<Attr> attrs)
 {
-	createTable(DB, table_name, attrs);
+	return createTable(DB, table_name, attrs);
 }
 
 

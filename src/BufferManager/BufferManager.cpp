@@ -1,38 +1,44 @@
 #include "buffermanager.h"
 
 /**
- * @brief  ç”¨æ•°æ®åº“åæ–°å»ºbufferã€‚
+ * @brief  ÓÃÊı¾İ¿âÃûĞÂ½¨buffer¡£
  */
-BufferManager::BufferManager(string name) {
-  dbName = name;
-  dbFileName = name + ".db";
-  infoFileName = name + ".blk";
-  dbFile.open(dbFileName, std::fstream::in | std::fstream::out );
-  if( !dbFile.is_open() ) {
-	  dbFile.open(dbFileName, std::ios::in | std::ios::out | std::ios::trunc );
-  }
-  infoFile.open(infoFileName, std::fstream::in | std::fstream::out );
-  if( !infoFile.is_open() ) {
-	  infoFile.open(infoFileName, std::ios::in | std::ios::out | std::ios::trunc );
-  }
-  readDbInfo();
+BufferManager::BufferManager(string name)
+{
+	name = DB_PATH(name) + name;
+	dbName = name;
+	dbFileName = name + ".db";
+	infoFileName = name + ".blk";
+	dbFile.open(dbFileName, std::fstream::in | std::fstream::out);
+	if (!dbFile.is_open())
+	{
+		dbFile.open(dbFileName, std::ios::in | std::ios::out | std::ios::trunc);
+	}
+	infoFile.open(infoFileName, std::fstream::in | std::fstream::out);
+	if (!infoFile.is_open())
+	{
+		infoFile.open(infoFileName, std::ios::in | std::ios::out | std::ios::trunc);
+	}
+	readDbInfo();
 }
 
 /**
- * @brief  å…³é—­bufferä¹‹å‰ï¼Œä»bufferå†™å›æ‰€æœ‰è„å—
+ * @brief  ¹Ø±ÕbufferÖ®Ç°£¬´ÓbufferĞ´»ØËùÓĞÔà¿é
  */
-BufferManager::~BufferManager() {
+BufferManager::~BufferManager()
+{
 	writeAllBlocks();
 	writeDbInfo();
 }
 
 /**
- * @brief  ä»æ•°æ®åº“æ–‡ä»¶è¯»å–ä¸€ä¸ªblockï¼ŒæŒ‡å®šåç§»é‡
+ * @brief  ´ÓÊı¾İ¿âÎÄ¼ş¶ÁÈ¡Ò»¸öblock£¬Ö¸¶¨Æ«ÒÆÁ¿
  */
-Block BufferManager::readBlock(int offset) {
+Block BufferManager::readBlock(int offset)
+{
 	Block block;
 
-	// è¯»å—å¤´
+	// ¶Á¿éÍ·
 	dbFile.seekg(offset);
 	dbFile.read(block.tableName, MAX_TABLE_NAME);
 	dbFile.read((char *)&(block.offset), sizeof(int));
@@ -41,8 +47,8 @@ Block BufferManager::readBlock(int offset) {
 	dbFile.read((char *)&(block.isAlive), sizeof(bool));
 	dbFile.read((char *)&(block.isIndex), sizeof(bool));
 
-	// è¯»å—
-	dbFile.seekg(offset+HEAD_LEN);
+	// ¶Á¿é
+	dbFile.seekg(offset + HEAD_LEN);
 	dbFile.read(block.content, BLOCK_LEN);
 
 	//
@@ -52,15 +58,19 @@ Block BufferManager::readBlock(int offset) {
 }
 
 
-void BufferManager::writeBlock(Block &block) {
-	// å¦‚æœè„åˆ™æ´—å‡€ï¼Œå¦åˆ™ä¸å†™
-	if( !block.isDirty ) {
+void BufferManager::writeBlock(Block& block)
+{
+	// Èç¹ûÔàÔòÏ´¾»£¬·ñÔò²»Ğ´
+	if (!block.isDirty)
+	{
 		return;
-	} else {
+	}
+	else
+	{
 		block.isDirty = false;
 	}
 
-	// å†™å—å¤´
+	// Ğ´¿éÍ·
 	dbFile.seekp(block.offset);
 	dbFile.write(block.tableName, MAX_TABLE_NAME);
 	dbFile.write((char *)&(block.offset), sizeof(int));
@@ -69,31 +79,37 @@ void BufferManager::writeBlock(Block &block) {
 	dbFile.write((char *)&(block.isAlive), sizeof(bool));
 	dbFile.write((char *)&(block.isIndex), sizeof(bool));
 
-	// å†™å—
-	dbFile.seekp(block.offset+HEAD_LEN);
+	// Ğ´¿é
+	dbFile.seekp(block.offset + HEAD_LEN);
 	dbFile.write(block.content, BLOCK_LEN);
 
 	return;
 }
 
-void BufferManager::writeAllBlocks() {
-	for(list<Block>::iterator i = buffer.begin(); i != buffer.end(); i ++ ) {
+void BufferManager::writeAllBlocks()
+{
+	for (list<Block>::iterator i = buffer.begin(); i != buffer.end(); ++i)
+	{
 		writeBlock(*i);
 	}
 	return;
 }
 
 
-Block& BufferManager::findBlock(int offset) {
-	// å…ˆåœ¨ç¼“å­˜ä¸­æŸ¥æ‰¾ï¼Œæ‰¾åˆ°åˆ™å°†å…¶æŒ‚åœ¨ç¼“å­˜æœ€å‰å¤´
-	for(list<Block>::iterator i = buffer.begin(); i != buffer.end(); i ++ ) {
-		if( i->offset == offset ) {
-			buffer.splice( buffer.begin(), buffer, i, std::next(i) );
+Block& BufferManager::findBlock(int offset)
+{
+	// ÏÈÔÚ»º´æÖĞ²éÕÒ£¬ÕÒµ½Ôò½«Æä¹ÒÔÚ»º´æ×îÇ°Í·
+	for (list<Block>::iterator i = buffer.begin(); i != buffer.end(); ++i)
+	{
+		if (i->offset == offset)
+		{
+			buffer.splice(buffer.begin(), buffer, i, std::next(i));
 			return (buffer.front());
 		}
 	}
-	// æ‰¾ä¸åˆ°ï¼Ÿè‹¥ç¼“å­˜æ»¡å†™å¹¶åˆ é™¤ç¼“å­˜æœ«å°¾å—ï¼Œè¯»æ–‡ä»¶å¹¶æŒ‚å…¥ç¼“å­˜
-	if(buffer.size() >= MAX_BLOCK_ACTIVE) {
+	// ÕÒ²»µ½£¿Èô»º´æÂúĞ´²¢É¾³ı»º´æÄ©Î²¿é£¬¶ÁÎÄ¼ş²¢¹ÒÈë»º´æ
+	if (buffer.size() >= MAX_BLOCK_ACTIVE)
+	{
 		writeBlock(*(buffer.end()));
 		buffer.pop_back();
 	}
@@ -103,18 +119,20 @@ Block& BufferManager::findBlock(int offset) {
 }
 
 
-void BufferManager::readDbInfo() {
+void BufferManager::readDbInfo()
+{
 	char tableName[MAX_TABLE_NAME];
 	string s;
 	int offset = 0;
 
 	infoFile.seekg(0, ios::beg);
 	infoFile.read(tableName, MAX_TABLE_NAME);
-	if( infoFile.eof() )
+	if (infoFile.eof())
 		return;
 
 	infoFile.seekg(0, ios::beg);
-	while( !infoFile.eof() ) {
+	while (!infoFile.eof())
+	{
 		infoFile.read(tableName, MAX_TABLE_NAME);
 		s = tableName;
 		infoFile.read((char *)offset, sizeof(int));
@@ -125,15 +143,17 @@ void BufferManager::readDbInfo() {
 }
 
 
-void BufferManager::writeDbInfo() {
-	// æ¸…ç©ºæ–‡ä»¶
+void BufferManager::writeDbInfo()
+{
+	// Çå¿ÕÎÄ¼ş
 	infoFile.close();
-	infoFile.open(infoFileName, std::fstream::out | std::fstream::in | std::fstream::trunc );
-	for(
+	infoFile.open(infoFileName, std::fstream::out | std::fstream::in | std::fstream::trunc);
+	for (
 		hash_map<string, int>::iterator i = firstBlock.begin(), j = lastBlock.begin();
 		i != firstBlock.end();
-		i ++, j++
-	   ) {
+		i ++ , j++
+	)
+	{
 		//cout << (char *)((i->first).c_str()) << (i->first).size() << endl;
 		//cout << (i->second) << endl;
 		infoFile.write((char *)((i->first).c_str()), (i->first).size());
@@ -143,71 +163,87 @@ void BufferManager::writeDbInfo() {
 }
 
 
-vector<int> BufferManager::getTableBlocks(string tableName) {
-	//è½¬æ¢tableNameä¸ºchar[]
+vector<int> BufferManager::getTableBlocks(string tableName)
+{
+	//×ª»»tableNameÎªchar[]
 	hash_map<string, int>::iterator i;
 	int offset;
 
-	//ä»firstBlockä¸­æŸ¥æ‰¾tableNameçš„ç¬¬ä¸€å—åœ°å€
-	for( i = firstBlock.begin(); i != firstBlock.end(); i ++ ) {
-		if( tableName == i->first ) {
+	//´ÓfirstBlockÖĞ²éÕÒtableNameµÄµÚÒ»¿éµØÖ·
+	for (i = firstBlock.begin(); i != firstBlock.end(); i ++)
+	{
+		if (tableName == i->first)
+		{
 			offset = i->second;
 			break;
 		}
 	}
 
-	if( i == firstBlock.end() ) {
+	if (i == firstBlock.end())
+	{
 		return vector<int>();
-		// TODO æœªæ‰¾åˆ°é”™è¯¯
+		// TODO Î´ÕÒµ½´íÎó
 	}
 
-	//å»ºç«‹vectorï¼ŒæŸ¥æ‰¾å„å—ä¸­ä¸æ˜¯indexçš„å—
+	//½¨Á¢vector£¬²éÕÒ¸÷¿éÖĞ²»ÊÇindexµÄ¿é
 	vector<int> result;
 
-	do {
-		Block &block = findBlock(offset);
-		if( block.isAlive ) {
+	do
+	{
+		Block& block = findBlock(offset);
+		if (block.isAlive)
+		{
 			result.push_back(offset);
 		}
 		offset = block.nextOffset;
-	} while(offset != 0);
+	}
+	while (offset != 0);
 
 	return result;
 }
 
-Block& BufferManager::newBlock(string tableName) {
-	//è½¬æ¢tableNameä¸ºchar[]
-	const char *tableChar = tableName.c_str();
+Block& BufferManager::newBlock(string tableName)
+{
+	//×ª»»tableNameÎªchar[]
+	const char* tableChar = tableName.c_str();
 	hash_map<string, int>::iterator i;
 
-	//æ–°å»ºç©ºBlockï¼Œtableä¸ºtableName, offsetä¸ºdbæ–‡ä»¶æœ«å°¾ï¼Œå¹¶ç›´æ¥å†™åˆ°æ–‡ä»¶æœ«å°¾
+	//ĞÂ½¨¿ÕBlock£¬tableÎªtableName, offsetÎªdbÎÄ¼şÄ©Î²£¬²¢Ö±½ÓĞ´µ½ÎÄ¼şÄ©Î²
 	Block block;
 	memcpy(block.tableName, tableChar, MAX_TABLE_NAME);
 	dbFile.seekp(0, ios_base::end);
 	block.offset = dbFile.tellp();
 	writeBlock(block);
 
-	//ä»firstBlockä¸­æŸ¥æ‰¾tableNameçš„ç¬¬ä¸€å—åœ°å€
-	for( i = firstBlock.begin(); i != firstBlock.end(); i ++ ) {
-		if( tableName == i->first ) {
+	//´ÓfirstBlockÖĞ²éÕÒtableNameµÄµÚÒ»¿éµØÖ·
+	for (i = firstBlock.begin(); i != firstBlock.end(); i ++)
+	{
+		if (tableName == i->first)
+		{
 			break;
 		}
 	}
-	if( i == firstBlock.end() ) {
-		// æ²¡æ‰¾åˆ°ï¼Œæ·»åŠ ä¸€æ¡
+	if (i == firstBlock.end())
+	{
+		// Ã»ÕÒµ½£¬Ìí¼ÓÒ»Ìõ
 		firstBlock.insert(pair<string, int>(block.tableName, block.offset));
 	}
 
-	//æŸ¥æ‰¾LastOffsetï¼Œè¯»æœ€åä¸€å—ï¼Œè®¾ç½®å®ƒçš„nextoffsetä¸ºæ–°å—çš„offsetï¼Œè®¾ç½®dirty
-	for( i = lastBlock.begin(); i != lastBlock.end(); i ++ ) {
-		if( tableName == i->first ) {
+	//²éÕÒLastOffset£¬¶Á×îºóÒ»¿é£¬ÉèÖÃËüµÄnextoffsetÎªĞÂ¿éµÄoffset£¬ÉèÖÃdirty
+	for (i = lastBlock.begin(); i != lastBlock.end(); i ++)
+	{
+		if (tableName == i->first)
+		{
 			break;
 		}
 	}
-	if( i == lastBlock.end() ) {
-		// æ²¡æ‰¾åˆ°ï¼Œæ·»åŠ ä¸€æ¡
+	if (i == lastBlock.end())
+	{
+		// Ã»ÕÒµ½£¬Ìí¼ÓÒ»Ìõ
 		lastBlock.insert(pair<string, int>(block.tableName, block.offset));
-	} else {
+	}
+	else
+	{
 		Block& temp = findBlock(i->second);
 		temp.nextOffset = block.offset;
 		temp.dirty();
@@ -218,52 +254,60 @@ Block& BufferManager::newBlock(string tableName) {
 	return findBlock(offset);
 }
 
-void BufferManager::debug(bool isContent = false) {
-    cout << "BUFFER" << endl;
-	for(list<Block>::iterator i = buffer.begin(); i != buffer.end(); i ++ )
+void BufferManager::debug(bool isContent = false)
+{
+	cout << "BUFFER" << endl;
+	for (list<Block>::iterator i = buffer.begin(); i != buffer.end(); i ++)
 	{
 		i->debug(isContent);
 	}
 	cout << "END" << endl;
 }
 
-/* ä»¥ä¸‹éƒ¨åˆ†å‡æ™ºå•†å‘ */
+/* ÒÔÏÂ²¿·Ö¼õÖÇÉÌÏò */
 
-Block& BufferManager::getBlocks(int offset) {
+Block& BufferManager::getBlocks(int offset)
+{
 	return findBlock(offset);
 }
 
-void BufferManager::storeBlocks(int offset, Block& block) {
+void BufferManager::storeBlocks(int offset, Block& block)
+{
 	block.offset = offset;
 	writeBlock(block);
 }
 
 
-
-vector<int> BufferManager::getIndexBlocks(string indexName) {
-	return getTableBlocks("!"+indexName);
+vector<int> BufferManager::getIndexBlocks(string indexName)
+{
+	return getTableBlocks("!" + indexName);
 }
 
-Block& BufferManager::newIndexBlock(string indexName) {
-	Block& b = newBlock("!"+indexName);
+Block& BufferManager::newIndexBlock(string indexName)
+{
+	Block& b = newBlock("!" + indexName);
 	b.isIndex = true;
 	return b;
 }
 
-Block& BufferManager::getIndexOneBlock(string indexName, int offset) {
+Block& BufferManager::getIndexOneBlock(string indexName, int offset)
+{
 	return getBlocks(offset);
 }
 
-void BufferManager::writeIndexData(string indexName, char *content, int length) {
-	for(int i = 0, j = 0; i < length; i += j) {
-		j = (i>BLOCK_LEN) ? BLOCK_LEN : i;
+void BufferManager::writeIndexData(string indexName, char* content, int length)
+{
+	for (int i = 0, j = 0; i < length; i += j)
+	{
+		j = (i > BLOCK_LEN) ? BLOCK_LEN : i;
 		Block& b = newIndexBlock(indexName);
-		memcpy(b.content, content+i, j);
+		memcpy(b.content, content + i, j);
 		b.dirty();
 	}
 }
 
-void BufferManager::writeIndexData(string indexName, int offset, char* content, int length) {
+void BufferManager::writeIndexData(string indexName, int offset, char* content, int length)
+{
 	Block b = findBlock(offset);
 	memcpy(b.content, content, length);
 	b.dirty();

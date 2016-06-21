@@ -49,6 +49,8 @@ public:
 
 private:
 	bool checkDatabaseExists(string DB_name);
+	bool checkTableExists(string DB_name, string table_name);
+
 	map<string, Attr> loadAttr(string DB_name, string table_name);
 
 	CError flushAttr(string DB_name, string table_name);

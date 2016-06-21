@@ -34,7 +34,7 @@ public:
 };
 
 typedef struct _Attr {
-	struct _Attr(std::string n, int t, bool p, bool r):name(n),type_id(t),is_prime(p),is_reference(r), db_ref(""), tab_ref(""), attr_ref(""){}
+	_Attr(std::string n, int t, bool p, bool r):name(n),type_id(t),is_prime(p),is_reference(r), db_ref(""), tab_ref(""), attr_ref(""){}
 	std::string name;
 	int type_id;
 	bool indexed;
