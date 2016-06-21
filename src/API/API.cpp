@@ -147,7 +147,7 @@ void Excute_SQL(statement SQL,string& name_of_database)      //结合Record Manage
                 }
                 else if(SQL.statement2.delete_condition[i].op==">=")
                 {
-                    tmp_where.relationship=GREATE_AND_EQUAL;
+                    tmp_where.relationship=GREATER_AND_EQUAL;
                 }
                 else if(SQL.statement2.delete_condition[i].op=="<>")
                 {
@@ -263,7 +263,7 @@ void Excute_SQL(statement SQL,string& name_of_database)      //结合Record Manage
                 }
                 else if(SQL.statement1.select_condition[i].op==">=")
                 {
-                    temp_where.relationship=GREATE_AND_EQUAL;
+                    temp_where.relationship=GREATER_AND_EQUAL;
                 }
                 else if(SQL.statement1.select_condition[i].op=="<>")
                 {

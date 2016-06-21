@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE minisql
 #include "stdafx.h"
 
 BOOST_AUTO_TEST_SUITE(CatalogManagerTest)
@@ -13,7 +12,7 @@ fs::path table_path(TABLE_PATH(db_name, table_name));
 
 
 vector<Attr> attrs;
-Attr attr(std::string("id"), TYPE_INT, false, false);
+Attr attr(std::string("id"), TYPE_INT, sizeof(int));
 
 
 BOOST_AUTO_TEST_CASE( LinkerUnitTest )
@@ -111,22 +110,6 @@ BOOST_AUTO_TEST_CASE(CatalogManager_EmptyTable)
 	
 	cm.dropDatabase(db_name);
 }
-
-BOOST_AUTO_TEST_CASE(CatalogManager_LoadAttr)
-{
-	CatalogManager cm;
-	cm.createDatabase(db_name);
-
-	attrs.empty();
-	attrs.push_back(attr);
-	cm.createTable(db_name, table_name, attrs);
-	vector<string> res = cm.getAllAttributes(db_name, table_name);
-
-	BOOST_CHECK(res.size() != 0);
-
-	cm.dropDatabase(db_name);
-}
-
 
 
 

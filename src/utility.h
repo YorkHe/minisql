@@ -45,7 +45,8 @@ public:
 
 class Attr{
 public:
-	Attr():is_prime(false), is_unique(false), not_null(false), indexed(false){}
+	Attr():indexed(false),is_prime(false), not_null(false), is_unique(false){}
+	Attr(std::string name, int type_id, int length):name(name), type_id(type_id), length(length), indexed(false),is_prime(false), not_null(false), is_unique(false){}
 	std::string name;
 	int type_id;
 	int length;
@@ -55,14 +56,18 @@ public:
 	bool is_unique;
 };
 
-//TODO: TBD
-typedef struct _Formula {
-	int a;
-}Formula;
+
+class Formula
+{
+public:
+	enum RELATION relation;
+	std::string left;
+	std::string right;
+};
 
 typedef struct _Condition {
 	bool with_where;
-	Formula* where_clause;
+	std::vector<Formula> where_clause;
 }Condition;
 
 enum RELATION {
@@ -70,7 +75,8 @@ enum RELATION {
 	GREATER,
 	GREATER_AND_EQUAL,
 	LESS,
-	LESS_AND_EQUAL
+	LESS_AND_EQUAL,
+	NOT_EQUAL
 };
 
 #define TYPE_INT 0
@@ -113,6 +119,18 @@ public:
 	int rec_num;
 	int size;
 	std::vector<Attr> attr_list;
+};
+
+class Row
+{
+public:
+	std::vector<std::string> col;
+};
+
+class Results
+{
+public:
+	std::vector<Row> row;
 };
 
 #define DATABASE_FOLDER "D:\\db\\"
