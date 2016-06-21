@@ -1,1 +1,7 @@
 .vscode/
+
+main/*
+
+!main/main.sln
+
+*DESKTOP*
