@@ -8,6 +8,17 @@
 
 namespace fs = boost::filesystem;
 
+void CatalogManager::writeHead(fstream &f, int& t_num)
+{
+	f.write(reinterpret_cast<char*>(&t_num), sizeof(int));
+	f.flush();
+}
+
+void CatalogManager::readHead(fstream &f, int& t_num)
+{
+	f.read(reinterpret_cast<char*>(&t_num), sizeof(int));
+}
+
 void CatalogManager::readTable(fstream &f, table& t)
 {
 	char buf[MAX_CHAR_LENGTH];
@@ -77,6 +88,12 @@ CError CatalogManager::createDatabase(string DB_name)
 	if (!fs::exists(db_path))
 	{
 		fs::create_directory(db_path);
+		fstream fout;
+		fout.open(DB_PATH(DB_name) + DB_name + ".list", ios::out | ios::binary);
+		int t = 0;
+		writeHead(fout, t);
+		fout.close();
+
 		return CError(ERR_SUCCESS, "");
 	}
 	else {
@@ -92,8 +109,27 @@ bool CatalogManager::checkDatabaseExists(string DB_name)
 
 bool CatalogManager::checkTableExists(string DB_name, string table_name)
 {
-	fs::path table_path(TABLE_PATH(DB_name, table_name));
-	return fs::exists(table_path);
+	bool flag = false;
+	fstream f;
+	f.open(DB_PATH(DB_name) + DB_name + ".list", ios::in | ios::binary);
+
+	int t_num;
+	table t;
+
+	readHead(f, t_num);
+
+	for (int i = 0; i < t_num; i++)
+	{
+		readTable(f, t);
+		if (t.name == table_name)
+		{
+			flag = true;
+			break;
+		}
+	}
+
+	f.close();
+	return flag;
 }
 
 CError CatalogManager::createTable(string DB_name, string table_name, vector<Attr> attrs)
@@ -147,11 +183,17 @@ CError CatalogManager::createTable(string DB_name, string table_name, vector<Att
 	}
 
 	tmp_table.attr_num = attrs.size();
-	fs::create_directory(TABLE_PATH(DB_name, table_name));
 	fstream f;
-	f.open(TABLE_PATH(DB_name, table_name) + "/" + (table_name + ".tabconf"), ios::in | ios::out | ios::beg);
+	f.open(DB_name + ".list", ios::in | ios::out | ios::beg);
 
+	int t_num;
+
+	f.seekg(0, ios::beg);
+	readHead(f, t_num);
+	t_num++;
 	f.seekp(0, ios::beg);
+	writeHead(f, t_num);
+	f.seekp(0, ios::end);
 	writeTable(f, tmp_table);
 	f.close();
 
@@ -175,11 +217,19 @@ CError CatalogManager::createIndex(string DB_name, string table_name, string att
 	}
 
 	fstream f;
-	f.open(TABLE_PATH(DB_name, table_name) + "/" + (table_name + ".tabconf"), ios::in | ios::out | ios::binary);
+	f.open(DB_FILE(DB_name) + ".list", ios::in | ios::out | ios::binary);
+
+	int t_num;
 
 	f.seekg(0, ios::beg);
+	readHead(f, t_num);
 
-	readTable(f, tmp_table);
+	for (int i = 0; i<t_num; i++)
+	{
+		readTable(f, tmp_table);
+		if (tmp_table.name == table_name)
+			break;
+	}
 
 	bool flag = false;
 
@@ -230,22 +280,50 @@ bool CatalogManager::testLinker()
 
 CError CatalogManager::dropTable(string DB_name, string table_name)
 {
-	fs::path table_path(TABLE_PATH(DB_name, table_name));
+	table tmp_table;
+	if (!checkDatabaseExists(DB_name))
+		throw CError(ERR_DB_NOT_EXISTS, "Database Not Exists");
 
-	if (!fs::exists(table_path))
+	if (!checkTableExists(DB_name, table_name))
+		throw CError(ERR_TAB_NOT_EXISTS, "Table Not Exists");
+
+	fstream f;
+	f.open(DB_name + ".list", ios::in | ios::out | ios::binary);
+	int t_num;
+
+	f.seekg(0, ios::beg);
+	readHead(f, t_num);
+
+	int readPos = f.tellg();
+	int tt_num = t_num;
+	t_num--;
+	f.seekp(0, ios::beg);
+	writeHead(f, t_num);
+
+	int n = 0;
+	int pos = 0;
+
+	f.seekg(readPos);
+
+	vector<table> tables;
+	for (int i = 0; i < tt_num; i++)
 	{
-		return CError(ERR_TAB_NOT_EXISTS, "Table not exists");
+		readTable(f, tmp_table);
+		tables.push_back(tmp_table);
+
+		if (tmp_table.name == table_name)
+		{
+			n = i;
+			pos = (int)f.tellg() - tmp_table.size;
+		}
 	}
 
-	boost::system::error_code ec;
-	if (fs::remove_all(table_path, ec))
-	{
-		return CError(ERR_SUCCESS, "");
-	}
-	else {
-		return CError(ERR_TAB_UNKNOWN, ec.message());
-	}	                                                                   
+	f.seekp(pos);
+	for (int i = n + 1; i < tt_num; i++)
+		writeTable(f, tables[i]);
 
+	f.close();
+	return CError(ERR_SUCCESS, "");
 }
 
 
@@ -265,9 +343,16 @@ CError CatalogManager::dropIndex(string DB_name, string table_name, string attr_
 	fstream f;
 	f.open(TABLE_PATH(DB_name, table_name) + "/" + (table_name + ".tabconf"), ios::in | ios::out | ios::binary);
 
+	int t_num;
 	f.seekg(0, ios::beg);
+	readHead(f, t_num);
 
-	readTable(f, tmp_table);
+	for (int i = 0; i < t_num; i++)
+	{
+		readTable(f, tmp_table);
+		if (tmp_table.name == table_name)
+			break;
+	}
 
 	bool flag = false;
 

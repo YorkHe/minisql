@@ -7,6 +7,8 @@ using namespace std;
 
 class CatalogManager {
 public:
+	void writeHead(fstream& f, int& t_num);
+	void readHead(fstream& f, int& t_num);
 	void readTable(fstream& f, table& t);
 	void writeTable(fstream& f, table& t);
 	void readAttr(fstream& f, Attr& tmp_attr);
