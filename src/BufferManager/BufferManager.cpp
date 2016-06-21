@@ -8,7 +8,7 @@ BufferManager::BufferManager(string name)
 	name = DB_PATH(name) + name;
 	dbName = name;
 	dbFileName = name + ".db";
-	infoFileName = name + ".blk";
+	infoFileName = name + ".info";
 	dbFile.open(dbFileName, std::fstream::in | std::fstream::out);
 	if (!dbFile.is_open())
 	{
@@ -41,11 +41,11 @@ Block BufferManager::readBlock(int offset)
 	// ¶Á¿éÍ·
 	dbFile.seekg(offset);
 	dbFile.read(block.tableName, MAX_TABLE_NAME);
-	dbFile.read((char *)&(block.offset), sizeof(int));
-	dbFile.read((char *)&(block.nextOffset), sizeof(int));
-	dbFile.read((char *)&(block.contentSize), sizeof(int));
-	dbFile.read((char *)&(block.isAlive), sizeof(bool));
-	dbFile.read((char *)&(block.isIndex), sizeof(bool));
+	dbFile.read(reinterpret_cast<char *>(&(block.offset)), sizeof(int));
+	dbFile.read(reinterpret_cast<char *>(&(block.nextOffset)), sizeof(int));
+	dbFile.read(reinterpret_cast<char *>(&(block.contentSize)), sizeof(int));
+	dbFile.read(reinterpret_cast<char *>(&(block.isAlive)), sizeof(bool));
+	dbFile.read(reinterpret_cast<char *>(&(block.isIndex)), sizeof(bool));
 
 	// ¶Á¿é
 	dbFile.seekg(offset + HEAD_LEN);
@@ -73,11 +73,11 @@ void BufferManager::writeBlock(Block& block)
 	// Ð´¿éÍ·
 	dbFile.seekp(block.offset);
 	dbFile.write(block.tableName, MAX_TABLE_NAME);
-	dbFile.write((char *)&(block.offset), sizeof(int));
-	dbFile.write((char *)&(block.nextOffset), sizeof(int));
-	dbFile.write((char *)&(block.contentSize), sizeof(int));
-	dbFile.write((char *)&(block.isAlive), sizeof(bool));
-	dbFile.write((char *)&(block.isIndex), sizeof(bool));
+	dbFile.write(reinterpret_cast<char *>(&(block.offset)), sizeof(int));
+	dbFile.write(reinterpret_cast<char *>(&(block.nextOffset)), sizeof(int));
+	dbFile.write(reinterpret_cast<char *>(&(block.contentSize)), sizeof(int));
+	dbFile.write(reinterpret_cast<char *>(&(block.isAlive)), sizeof(bool));
+	dbFile.write(reinterpret_cast<char *>(&(block.isIndex)), sizeof(bool));
 
 	// Ð´¿é
 	dbFile.seekp(block.offset + HEAD_LEN);
@@ -107,7 +107,7 @@ Block& BufferManager::findBlock(int offset)
 			return (buffer.front());
 		}
 	}
-	// ÕÒ²»µ½£¿Èô»º´æÂúÐ´²¢É¾³ý»º´æÄ©Î²¿é£¬¶ÁÎÄ¼þ²¢¹ÒÈë»º´æ
+	// Èô»º´æÂúÐ´²¢É¾³ý»º´æÄ©Î²¿é£¬¶ÁÎÄ¼þ²¢¹ÒÈë»º´æ
 	if (buffer.size() >= MAX_BLOCK_ACTIVE)
 	{
 		writeBlock(*(buffer.end()));
@@ -151,7 +151,7 @@ void BufferManager::writeDbInfo()
 	for (
 		hash_map<string, int>::iterator i = firstBlock.begin(), j = lastBlock.begin();
 		i != firstBlock.end();
-		i ++ , j++
+		++i , ++j
 	)
 	{
 		//cout << (char *)((i->first).c_str()) << (i->first).size() << endl;

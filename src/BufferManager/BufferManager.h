@@ -27,7 +27,6 @@ tableName[MAX_TABLE_NAME]  Firstoffset[4]  Lastoffset[4]
 #include "block.h"
 #include "utility.h"
 
-
 #include <string>
 #include <iostream>
 #include <list>

@@ -1,18 +1,16 @@
 #include<iostream>
-#include"Interpreter.h"
 #include"API.h"
-#include<stdio.h>
+
+using namespace std;
 
 int main()
 {
     char input[500];
     memset(input,'\0',sizeof(input));
     cout<<"Welcome to use MiniSQL!"<<endl<<"-------------------------"<<endl<<endl;
-
+    string name_of_datadase="master";
     statement SQL;
     SQL.num=-1;
-
-    string database_name="master";       //记录选择数据库的名字
 
     while(1)
     {
@@ -40,7 +38,7 @@ int main()
         }
         else
         {
-            Excute_SQL(SQL,database_name);
+            Excute_SQL(SQL,name_of_datadase);
             memset(input,'\0',sizeof(input));
             SQL.num=-1;
         }

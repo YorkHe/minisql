@@ -8,6 +8,68 @@
 
 namespace fs = boost::filesystem;
 
+void CatalogManager::readTable(fstream &f, table& t)
+{
+	char buf[MAX_CHAR_LENGTH];
+	f.read(reinterpret_cast<char*>(buf), MAX_CHAR_LENGTH);
+	t.name = buf;
+	f.read(reinterpret_cast<char*>(buf), MAX_CHAR_LENGTH);
+	t.dbname = buf;
+
+	f.read(reinterpret_cast<char*>(&(t.attr_num)), sizeof(int));
+	f.read(reinterpret_cast<char*>(&(t.rec_length)), sizeof(int));
+	f.read(reinterpret_cast<char*>(&(t.rec_num)), sizeof(int));
+	f.read(reinterpret_cast<char*>(&(t.size)), sizeof(int));
+
+	Attr tmp_attr;
+	for (int i = 0; i < t.attr_num; i++)
+	{
+		readAttr(f, tmp_attr);
+		t.attr_list.push_back(tmp_attr);
+	}
+}
+
+void CatalogManager::writeTable(fstream &f, table& t)
+{
+	f.write(t.name.c_str(), MAX_CHAR_LENGTH);
+	f.write(t.dbname.c_str(), MAX_CHAR_LENGTH);
+	f.write(reinterpret_cast<char*>(&t.attr_num), sizeof(int));
+	f.write(reinterpret_cast<char*>(&t.rec_length), sizeof(int));
+	f.write(reinterpret_cast<char*>(&t.rec_num), sizeof(int));
+	f.write(reinterpret_cast<char*>(&t.size), sizeof(int));
+	for (auto attr : t.attr_list)
+		writeAttr(f, attr);
+	f.flush();
+}
+
+void CatalogManager::readAttr(fstream &f, Attr &tmp_attr)
+{
+	char buf[MAX_CHAR_LENGTH];
+	f.read(reinterpret_cast<char*>(buf), MAX_CHAR_LENGTH);
+	f.read(reinterpret_cast<char*>(&tmp_attr.type_id), sizeof(int));
+	f.read(reinterpret_cast<char*>(&tmp_attr.length), sizeof(int));
+	f.read(reinterpret_cast<char*>(&tmp_attr.is_prime), sizeof(bool));
+	f.read(reinterpret_cast<char*>(&tmp_attr.is_unique), sizeof(bool));
+	f.read(reinterpret_cast<char*>(&tmp_attr.not_null), sizeof(bool));
+	f.read(reinterpret_cast<char*>(&tmp_attr.indexed), sizeof(bool));
+	tmp_attr.name = buf;
+}
+
+void CatalogManager::writeAttr(fstream &f, Attr &tmp_attr)
+{
+	f.write((tmp_attr.name.c_str()), MAX_CHAR_LENGTH);
+	f.write(reinterpret_cast<char*>(&tmp_attr.type_id), sizeof(int));
+	f.write(reinterpret_cast<char*>(&tmp_attr.length), sizeof(int));
+	f.write(reinterpret_cast<char*>(&tmp_attr.is_prime), sizeof(bool));
+	f.write(reinterpret_cast<char*>(&tmp_attr.is_unique), sizeof(bool));
+	f.write(reinterpret_cast<char*>(&tmp_attr.not_null), sizeof(bool));
+	f.write(reinterpret_cast<char*>(&tmp_attr.indexed), sizeof(bool));
+}
+
+
+
+
+
 CError CatalogManager::createDatabase(string DB_name)
 {
 	fs::path db_path(DB_PATH(DB_name));
@@ -15,11 +77,6 @@ CError CatalogManager::createDatabase(string DB_name)
 	if (!fs::exists(db_path))
 	{
 		fs::create_directory(db_path);
-		ofstream db_file;		
-		db_file.open(DB_PATH(DB_name) + ("/" + DB_name+".db"));
-		db_file << DB_name << endl;
-		db_file.close();
-
 		return CError(ERR_SUCCESS, "");
 	}
 	else {
@@ -41,79 +98,119 @@ bool CatalogManager::checkTableExists(string DB_name, string table_name)
 
 CError CatalogManager::createTable(string DB_name, string table_name, vector<Attr> attrs)
 {
+	table tmp_table;
+
 	if (!checkDatabaseExists(DB_name))
 	{
-		return CError(ERR_DB_NOT_EXISTS, "Database " + DB_name + "not exists");
+		throw CError(ERR_DB_NOT_EXISTS, "Database " + DB_name + "not exists");
 	}
 
-	fs::path table_path(TABLE_PATH(DB_name, table_name));
-
-	if (!fs::exists(table_path))
+	if (checkTableExists(DB_name, table_name))
 	{
-		fs::create_directory(table_path);
+		throw CError(ERR_TAB_ALREADY_EXISTS, "Table" + table_name + "already exists");
+	}
 
-		ofstream table_file;
-		table_file.open(TABLE_PATH(DB_name, table_name) +  "/" + (table_name + ".tabconf"));
-		table_file << table_name << endl;		
-		
-		for (auto attr : attrs)
+	tmp_table.dbname = DB_name;
+	tmp_table.name = table_name;
+	tmp_table.rec_length = 0;
+	tmp_table.rec_num = 0;
+	tmp_table.size = MAX_CHAR_LENGTH * 2 + sizeof(int) * 4;
+
+	for (auto attr : attrs)
+	{
+		Attr tmp_attr;
+		tmp_attr.name = attr.name;
+		tmp_table.size += MAX_CHAR_LENGTH + sizeof(int) * 2 + sizeof(bool) * 4;
+
+		tmp_attr.type_id = attr.type_id;
+		if (tmp_attr.type_id == TYPE_FLOAT)
 		{
-			table_file << attr.name << " " << attr.type_id << endl;
+			tmp_table.rec_length += sizeof(float);
+			tmp_attr.length = sizeof(float);
 		}
-		table_file.close();
-		
-		ofstream table_data_file;
-		table_data_file.open(TABLE_PATH(DB_name, table_name) + "/" + (table_name + ".data"));
-		table_data_file.close();
+		if (tmp_attr.type_id == TYPE_INT)
+		{
+			tmp_table.rec_length += sizeof(int);
+			tmp_attr.length = sizeof(int);
+		}
+		if (tmp_attr.type_id == TYPE_CHAR)
+		{
+			tmp_table.rec_length += sizeof(char);
+			tmp_attr.length = sizeof(char);
+		}
 
-		ofstream db_file;
-		db_file.open(DB_PATH(DB_name) +  "/" + (DB_name + ".db"), ios::app);
-		db_file << table_name << endl;
-		db_file.close();
-		return CError(ERR_SUCCESS, "");
+		tmp_attr.is_prime = attr.is_prime;
+		tmp_attr.is_unique = attr.is_unique;
+		tmp_attr.not_null = attr.not_null;
+
+		tmp_table.attr_list.push_back(tmp_attr);
 	}
-	else {
-		return CError(ERR_TAB_ALREADY_EXISTS, "Table Already Exists.");
-	}
+
+	tmp_table.attr_num = attrs.size();
+	fs::create_directory(TABLE_PATH(DB_name, table_name));
+	fstream f;
+	f.open(TABLE_PATH(DB_name, table_name) + "/" + (table_name + ".tabconf"), ios::in | ios::out | ios::beg);
+
+	f.seekp(0, ios::beg);
+	writeTable(f, tmp_table);
+	f.close();
+
+	return CError(ERR_SUCCESS, "");
 }
 
-CError CatalogManager::createTable(string table_name, vector<Attr> attrs)
+
+CError CatalogManager::createIndex(string DB_name, string table_name, string attr_name, table &target_table)
 {
-	return createTable(DB, table_name, attrs);
-}
-
-
-CError CatalogManager::createIndex(string DB_name, string table_name, string attr_name)
-{
-	fs::path index_path(TABLE_PATH(DB_name, table_name)+"/"+attr_name+".index");
-	loadAttr(DB_name, table_name);
-
-	if (!fs::exists(index_path))
+	table tmp_table;
+	if (!checkDatabaseExists(DB_name))
 	{
-		ofstream index_file;
-		index_file.open(index_path.c_str());
-		//TODO: Create index into the file.
-		index_file.close();
-
-		m_attrs[attr_name].indexed = true;
-
-		flushAttr(DB_name, table_name);
-
-		return (CError(ERR_SUCCESS, ""));
-	}
-	else {
-		return (CError(ERR_IDX_EXISTS, "Index Already Exists."));
+		throw CError(ERR_DB_NOT_EXISTS, "Database Not Exists");
+		return;
 	}
 
-}
+	if(!checkTableExists(DB_name, table_name))
+	{
+		throw CError(ERR_TAB_NOT_EXISTS, "Table Not Exists");
+		return;
+	}
 
-CError CatalogManager::createIndex(string table_name, string attr_name)
-{
-	return createIndex(DB, table_name, attr_name);
+	fstream f;
+	f.open(TABLE_PATH(DB_name, table_name) + "/" + (table_name + ".tabconf"), ios::in | ios::out | ios::binary);
+
+	f.seekg(0, ios::beg);
+
+	readTable(f, tmp_table);
+
+	bool flag = false;
+
+	for(auto attr:tmp_table.attr_list)
+	{
+		if (attr.name == attr_name)
+		{
+			flag = true;
+			if (attr.indexed)
+			{
+				throw CError(ERR_IDX_EXISTS, "Attribute " + attr_name + " already has index!");
+			}
+		}
+	}
+
+	if (!flag)
+	{
+		throw CError(ERR_ATTR_NOT_EXISTS, "Attribute " + attr_name + " doesn't exists");
+	}
+
+	target_table = tmp_table;
 }
 
 CError CatalogManager::dropDatabase(string DB_name)
 {
+	if (!checkDatabaseExists(DB_name))
+	{
+		return CError(ERR_DB_NOT_EXISTS, "Database Not Exists");
+	}
+
+
 	fs::path DB_path(DB_PATH(DB_name));
 	boost::system::error_code ec;
 	if (fs::remove_all(DB_path, ec))
@@ -123,7 +220,6 @@ CError CatalogManager::dropDatabase(string DB_name)
 	else {
 		return CError(ERR_DB_UNKNOWN, ec.message());
 	}
-
 }
 
 bool CatalogManager::testLinker()
@@ -152,30 +248,50 @@ CError CatalogManager::dropTable(string DB_name, string table_name)
 
 }
 
-CError CatalogManager::dropTable(string table_name)
+
+CError CatalogManager::dropIndex(string DB_name, string table_name, string attr_name, table &target_table)
 {
-	return dropTable(DB, table_name);
-}
-
-
-CError CatalogManager::dropIndex(string DB_name, string table_name, string attr_name)
-{
-	boost::system::error_code ec;
-	fs::path index_path(TABLE_PATH(DB_name, table_name) + "/" + attr_name + ".index");
-
-	if (fs::exists(index_path))
+	table tmp_table;
+	if (!checkDatabaseExists(DB_name))
 	{
-		fs::remove(index_path);
-		return CError(ERR_SUCCESS, "");
+		throw CError(ERR_DB_NOT_EXISTS, "Database not exists");
 	}
-	else {
-		return CError(ERR_IDX_NOT_EXISTS, "Index Not Exists");
-	}
-}
 
-CError CatalogManager::dropIndex(string table_name, string attr_name)
-{
-	return dropIndex(DB, table_name, attr_name);
+	if (!checkTableExists(DB_name, table_name))
+	{
+		throw CError(ERR_TAB_NOT_EXISTS, "Table not exists");
+	}
+
+	fstream f;
+	f.open(TABLE_PATH(DB_name, table_name) + "/" + (table_name + ".tabconf"), ios::in | ios::out | ios::binary);
+
+	f.seekg(0, ios::beg);
+
+	readTable(f, tmp_table);
+
+	bool flag = false;
+
+	for (auto attr:tmp_table.attr_list)
+	{
+		if (attr.name == attr_name)
+		{
+			flag = true;
+			if (!attr.indexed)
+			{
+				throw CError(ERR_IDX_NOT_EXISTS, "Attribute " + attr_name + " Doesn't Have Index!");
+			}
+			break;
+		}
+	}
+
+	if (!flag)
+	{
+		throw CError(ERR_ATTR_NOT_EXISTS, "Attribute " + attr_name + "Doesn't Exists");
+	}
+
+	target_table = tmp_table;
+
+	return CError(ERR_SUCCESS, "");
 }
 
 
@@ -200,110 +316,8 @@ CError CatalogManager::emptyTable(string DB_name, string table_name)
 	}
 }
 
-CError CatalogManager::emptyTable(string table_name)
-{
-	return emptyTable(DB, table_name);
-}
 
-
-
-map<string, Attr> CatalogManager::loadAttr(string DB_name, string table_name)
-{
-	if (cur_DB == DB_name && cur_table == table_name)
-	{
-		return m_attrs;
-	}
-
-	cur_DB = DB_name;
-	cur_table = table_name;
-
-	map <string, Attr> ret;
-	ifstream attr_file;
-	attr_file.open(TABLE_PATH(DB_name, table_name) + "/" + (table_name + ".tabconf"), ios::in);
-
-	string table_n;
-	string name;
-	int type;
-	int prime, ref;
-
-	attr_file >> table_n;
-
-	while (attr_file >> name >> type >> prime >> ref)
-	{
-		ret[name] = Attr(name, type, prime, ref);
-	}
-
-	m_attrs = ret;
-
-	return ret;
-}
-
-vector<string> CatalogManager::getAllAttributes(string DB_name, string table_name)
-{
-	vector<string> res;
-	char s[256];
-
-	loadAttr(DB_name, table_name);
-
-	for (auto i : m_attrs)
-	{
-		res.push_back(i.first);
-	}
-	
-	return res;
-}
-
-vector<string> CatalogManager::getAllAttributes(string table_name)
-{
-	return getAllAttributes(DB, table_name);
-}
-
-
-vector<Attr> CatalogManager::getAllAttributesDetail(string DB_name, string table_name)
-{
-	loadAttr(DB_name, table_name);
-	vector<Attr> ret;
-
-	for (auto i : m_attrs)
-	{
-		ret.push_back(i.second);
-	}
-	return ret;
-}
-
-vector<Attr> CatalogManager::getAllAttributesDetail(string table_name)
-{
-	return getAllAttributesDetail(DB, table_name);
-}
-
-
-Attr CatalogManager::getAttributeDetail(string DB_name, string table_name, string attr_name)
-{
-	loadAttr(DB_name, table_name);
-	
-	return m_attrs[attr_name];
-}
-
-Attr CatalogManager::getAttributeDetail(string table_name, string attr_name)
-{
-	return getAttributeDetail(DB, table_name, attr_name);
-}
-
-CError CatalogManager::flushAttr(string DB_name, string table_name)
-{
-	ofstream table_file;
-	table_file.open(TABLE_PATH(DB_name, table_name) + "/" + (table_name + ".tabconf"));
-	table_file << table_name << endl;
-
-	for (auto iter : m_attrs)
-	{
-		auto attr = iter.second;
-		table_file << attr.name << " " << attr.type_id << endl;
-	}
-	table_file.close();
-}
-
-
+/*
 vector<string> CatalogManager::getAllIndexes(string DB_name, string table_name)
 {
 	vector<string> ret;
@@ -320,52 +334,17 @@ vector<string> CatalogManager::getAllIndexes(string DB_name, string table_name)
 	return ret;
 }
 
-vector<string> CatalogManager::getAllIndexes(string table_name)
-{
-	return getAllIndexes(DB, table_name);
-}
 
 CError CatalogManager::denotePrimeKey(string DB_name, string table_name, string attr_name)
 {
 	loadAttr(DB_name, table_name);
 
 	m_attrs[attr_name].is_prime = true;
-	//TODO: check if the attr is eligible as a prime key.
 	
 
 	flushAttr(DB_name, table_name);
 }
-
-CError CatalogManager::denotePrimeKey(string table_name, string attr_name)
-{
-	return denotePrimeKey(DB, table_name, attr_name);
-}
-
-
-CError CatalogManager::denoteForeignKey(string DB_name, string table_name, string attr_name, string DB_name_ref, string table_name_ref, string attr_name_ref)
-{
-	
-	
-	auto cur_attr = loadAttr(DB_name, table_name)[attr_name];
-	auto ref_attr = loadAttr(DB_name_ref, table_name_ref)[attr_name_ref];
-
-	
-	if (cur_attr.type_id != ref_attr.type_id)
-	{
-		throw CError(ERR_REF_NOT_SAME_TYPE, "The two referenced key are not of the same type");
-		return;
-	}
-
-	//TODO: check if the attr is eligible as foreign key. 
-
-	
-	flushAttr(DB_name, table_name);
-}
-
-CError CatalogManager::denoteForeignKey(string table_name, string attr_name, string DB_name_ref, string table_name_ref, string attr_name_ref)
-{
-	return denoteForeignKey(DB, table_name, attr_name, DB_name_ref, table_name_ref, attr_name_ref);
-}
+*/
 
 
 CError CatalogManager::useDatabase(string DB_name)

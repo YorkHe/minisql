@@ -1,7 +1,10 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
+#define MAX_CHAR_LENGTH 32
+#define FILE_PAGESIZE 4096
 
 #define DB_PATH(DB_NAME) DATABASE_FOLDER + DB_NAME
 
@@ -14,15 +17,20 @@
 #define ERR_TAB_ALREADY_EXISTS 4
 #define ERR_TAB_NOT_EXISTS 5
 #define ERR_TAB_UNKNOWN 6
-
 #define ERR_IDX_EXISTS 7
 #define ERR_IDX_NOT_EXISTS 8
-#define ERR_REF_NOT_SAME_TYPE 9
+#define ERR_ATTR_NOT_EXISTS 9
+#define ERR_REF_NOT_SAME_TYPE 10 
 
 class CError
 {
 
 public:
+	CError()
+	{
+		this->err_code = 0;
+		this->description = "";
+	}
 	CError(int err_code, std::string description)
 	{
 		this->err_code = err_code;
@@ -33,17 +41,17 @@ public:
 	std::string description;
 };
 
-typedef struct _Attr {
-	_Attr(std::string n, int t, bool p, bool r):name(n),type_id(t),is_prime(p),is_reference(r), db_ref(""), tab_ref(""), attr_ref(""){}
+class Attr{
+public:
+	Attr():is_prime(false), is_unique(false), not_null(false), indexed(false){}
 	std::string name;
 	int type_id;
+	int length;
 	bool indexed;
 	bool is_prime;
-	bool is_reference;	
-	std::string db_ref;
-	std::string tab_ref;
-	std::string attr_ref;
-}Attr;
+	bool not_null;
+	bool is_unique;
+};
 
 //TODO: TBD
 typedef struct _Formula {
@@ -64,9 +72,10 @@ enum RELATION {
 };
 
 #define TYPE_INT 0
-#define TYPE_VARCHAR 1
+#define TYPE_CHAR 1
 #define TYPE_DATES 2
-#define TYPE_NULL 3
+#define TYPE_FLOAT 3
+#define TYPE_NULL 4
 
 typedef struct _Element {
 	std::string attr_name;
@@ -79,6 +88,29 @@ struct Tuple {
 
 struct Index {
 
+};
+
+class table
+{
+public:
+	table(const table& T)
+	{
+		name = T.name;
+		dbname = T.dbname;
+		attr_num = T.attr_num;
+		rec_length = T.rec_length;
+		rec_num = T.rec_num;
+		size = T.size;
+	}
+
+	table() {};
+	std::string name;
+	std::string dbname;
+	int attr_num;
+	int rec_length;
+	int rec_num;
+	int size;
+	std::vector<Attr> attr_list;
 };
 
 #define DATABASE_FOLDER "D:\\db\\"

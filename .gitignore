@@ -3,5 +3,6 @@
 main/*
 
 !main/main.sln
+!main/*.vcxproj
 
 *DESKTOP*

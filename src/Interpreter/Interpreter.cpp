@@ -1,8 +1,7 @@
 #include<iostream>
 #include<string>
+#include"Interpreter.h"
 #include<stdlib.h>
-#include "Interpreter.h"
-
 using namespace std;
 
 //获取用户输入，并对输入进行解析，解析过程中对语句进行语法判断，返回内部语句格式
@@ -43,16 +42,19 @@ statement  Read_Interpreter(char input[])
                             Input_splitp[j+2]=Input_splitp[j+2].erase(0,1);
                             SQL.statement1.select_condition[SQL.statement1.condition_num].value2=Input_splitp[j+2].erase(Input_splitp[j+2].length()-1,1);
                             SQL.statement1.condition_num++;
+                            SQL.statement1.select_condition[SQL.statement1.condition_num].value=SQL.statement1.select_condition[SQL.statement1.condition_num].value2;
                         }
                         else if(strstr(Input_splitp[j+2].c_str(),"."))
                         {
                             SQL.statement1.select_condition[SQL.statement1.condition_num].col_type=3;
+                            SQL.statement1.select_condition[SQL.statement1.condition_num].value=Input_splitp[j+2];
                             SQL.statement1.select_condition[SQL.statement1.condition_num].value3=atof(Input_splitp[j+2].c_str());
                             SQL.statement1.condition_num++;
                         }
                         else
                         {
                             SQL.statement1.select_condition[SQL.statement1.condition_num].col_type=1;
+                            SQL.statement1.select_condition[SQL.statement1.condition_num].value=Input_splitp[j+2];
                             SQL.statement1.select_condition[SQL.statement1.condition_num].value3=atoi(Input_splitp[j+2].c_str());
                             SQL.statement1.condition_num++;
                         }
@@ -105,17 +107,20 @@ statement  Read_Interpreter(char input[])
                         SQL.statement2.delete_condition[SQL.statement2.condition_num].col_type=2;
                         Input_splitp[j+2]=Input_splitp[j+2].erase(0,1);
                         SQL.statement2.delete_condition[SQL.statement2.condition_num].value2=Input_splitp[j+2].erase(Input_splitp[j+2].length()-1,1);
+                        SQL.statement2.delete_condition[SQL.statement2.condition_num].value=SQL.statement2.delete_condition[SQL.statement2.condition_num].value2;
                         SQL.statement2.condition_num++;
                     }
                     else if(strstr(Input_splitp[j+2].c_str(),"."))
                     {
                         SQL.statement2.delete_condition[SQL.statement2.condition_num].col_type=3;
+                        SQL.statement2.delete_condition[SQL.statement2.condition_num].value=Input_splitp[j+2];
                         SQL.statement2.delete_condition[SQL.statement2.condition_num].value3=atof(Input_splitp[j+2].c_str());
                         SQL.statement2.condition_num++;
                     }
                     else
                     {
                         SQL.statement2.delete_condition[SQL.statement2.condition_num].col_type=1;
+                        SQL.statement2.delete_condition[SQL.statement2.condition_num].value=Input_splitp[j+2];
                         SQL.statement2.delete_condition[SQL.statement2.condition_num].value3=atoi(Input_splitp[j+2].c_str());
                         SQL.statement2.condition_num++;
                     }
