@@ -1,20 +1,20 @@
 /**
-* @file  buffermanager.h
-* @brief »º³åÇø¹ÜÀíÍ·ÎÄ¼ş
-* @author tgmerge
-* »º³åÇø¹ÜÀíÆ÷¡£¼ì²é»º³åÇøÖĞÊÇ·ñÓĞÒªÇóµÄ¿é£¬ÈçÓĞÔò·µ»Ø£¬·ñÔò´Ó´ÅÅÌ¶ÁÈ¡¡£
-* ÎªIndexºÍRecordÌá¹©ËùĞèµÄ¿é
-*
-* Ã¿¸öBufferManager¶ÔÏóÖ»´ò¿ªÒ»¸öÊı¾İ¿â£¨ÎÄ¼ş£©£¬ÎÄ¼şÃûÊÇ"Êı¾İ¿âÃû.db"¡£
-* ¹¹Ôì·½·¨ĞèÒª´«ÈëÊı¾İ¿âÃû¡£
-* Ê¹ÓÃBufferManagerÊ±²»ĞèÒªÉêÇëĞ´¿éµ½ÎÄ¼ş£¬Ö»ĞèÒªÔÚ¿é·¢Éú¸Ä±äÊ±µ÷ÓÃ¿éµÄdirty()·½·¨°ÑËüÉèÖÃ³ÉÔàµÄ
-* BufferManager»áÔÚÔà¿é±»Ìæ»»³ö»º´æ£¬»ò×ÔÉí±»Ïú»ÙÖ®Ç°½«ËüÃÇĞ´»ØÎÄ¼ş¡£
-*/
+ * @file  buffermanager.h
+ * @brief ç¼“å†²åŒºç®¡ç†å¤´æ–‡ä»¶
+ * @author tgmerge
+ * ç¼“å†²åŒºç®¡ç†å™¨ã€‚æ£€æŸ¥ç¼“å†²åŒºä¸­æ˜¯å¦æœ‰è¦æ±‚çš„å—ï¼Œå¦‚æœ‰åˆ™è¿”å›ï¼Œå¦åˆ™ä»ç£ç›˜è¯»å–ã€‚
+ * ä¸ºIndexå’ŒRecordæä¾›æ‰€éœ€çš„å—
+ *
+ * æ¯ä¸ªBufferManagerå¯¹è±¡åªæ‰“å¼€ä¸€ä¸ªæ•°æ®åº“ï¼ˆæ–‡ä»¶ï¼‰ï¼Œæ–‡ä»¶åæ˜¯"æ•°æ®åº“å.db"ã€‚
+ * æ„é€ æ–¹æ³•éœ€è¦ä¼ å…¥æ•°æ®åº“åã€‚
+ * ä½¿ç”¨BufferManageræ—¶ä¸éœ€è¦ç”³è¯·å†™å—åˆ°æ–‡ä»¶ï¼Œåªéœ€è¦åœ¨å—å‘ç”Ÿæ”¹å˜æ—¶è°ƒç”¨å—çš„dirty()æ–¹æ³•æŠŠå®ƒè®¾ç½®æˆè„çš„
+ * BufferManagerä¼šåœ¨è„å—è¢«æ›¿æ¢å‡ºç¼“å­˜ï¼Œæˆ–è‡ªèº«è¢«é”€æ¯ä¹‹å‰å°†å®ƒä»¬å†™å›æ–‡ä»¶ã€‚
+ */
 
 /**
-±íµÄ¿éË÷ÒıdbName.blk
-¼ÇÂ¼Ã¿¸ötableµÚÒ»¸ö¿éºÍ×îºóÒ»¸ö¿éµÄÆ«ÒÆÁ¿
-ÊÇ¶ş½øÖÆÎÄ¼ş
+è¡¨çš„å—ç´¢å¼•dbName.blk
+è®°å½•æ¯ä¸ªtableç¬¬ä¸€ä¸ªå—å’Œæœ€åä¸€ä¸ªå—çš„åç§»é‡
+æ˜¯äºŒè¿›åˆ¶æ–‡ä»¶
 tableName[MAX_TABLE_NAME]  Firstoffset[4]  Lastoffset[4]
 tableName[MAX_TABLE_NAME]  Firstoffset[4]  Lastoffset[4]
 ...
@@ -34,7 +34,7 @@ tableName[MAX_TABLE_NAME]  Firstoffset[4]  Lastoffset[4]
 
 using namespace std;
 
-// »º³åÇøÖĞ×î´ó¿éÊı
+// ç¼“å†²åŒºä¸­æœ€å¤§å—æ•°
 #define MAX_BLOCK_ACTIVE 40
 #define MAX_TABLE_NAME   32
 
@@ -47,64 +47,64 @@ private:
 	fstream dbFile;
 	fstream infoFile;
 private:
-	// ¸÷±íµÚÒ»¿éµÄÆ«ÒÆstring:tableName, int:offset
+	// å„è¡¨ç¬¬ä¸€å—çš„åç§»string:tableName, int:offset
 	hash_map<string, int> firstBlock;
-	// ¸÷±í×îºóÒ»¿éµÄÆ«ÒÆstring:tableName, int:offset
+	// å„è¡¨æœ€åä¸€å—çš„åç§»string:tableName, int:offset
 	hash_map<string, int> lastBlock;
 
 public:
-	// ok ÄÚ´æÖĞµÄ»º³åÇø
+	// ok å†…å­˜ä¸­çš„ç¼“å†²åŒº
 	list<Block> buffer;
 
-public:							// ¹¹Ôì£¬Îö¹¹
-								// ok ÓÃÊı¾İ¿âÃû³õÊ¼»¯buffermanager
+public:							// æ„é€ ï¼Œææ„
+	// ok ç”¨æ•°æ®åº“ååˆå§‹åŒ–buffermanager
 	BufferManager(string name);
-	// ok Ğ´»ØËùÓĞÔà¿é£¬Ïú»Ùbuffermanager
+	// ok å†™å›æ‰€æœ‰è„å—ï¼Œé”€æ¯buffermanager
 	virtual ~BufferManager();
 
-public:						// ×ÔÓÃ·½·¨£¬¶ÁĞ´
-							// ok ´ÓÄ³ÎÄ¼ş¶ÁÒ»¸öblock,²»¹Ü»º´æ
+public:						// è‡ªç”¨æ–¹æ³•ï¼Œè¯»å†™
+	// ok ä»æŸæ–‡ä»¶è¯»ä¸€ä¸ªblock,ä¸ç®¡ç¼“å­˜
 	Block readBlock(int offset);
-	// ok ½«blockĞ´µ½ÎÄ¼ş£¨ÈôÊÇ¸É¾»µÄ¾Í²»Ğ´ÁË£©
+	// ok å°†blockå†™åˆ°æ–‡ä»¶ï¼ˆè‹¥æ˜¯å¹²å‡€çš„å°±ä¸å†™äº†ï¼‰
 	void writeBlock(Block &block);
-	// ok Ğ´»ØËùÓĞ»º³åÇøÖĞµÄÔàblockµ½ÎÄ¼ş
+	// ok å†™å›æ‰€æœ‰ç¼“å†²åŒºä¸­çš„è„blockåˆ°æ–‡ä»¶
 	void writeAllBlocks();
-	// ok Êä³ö»º³åÇøĞÅÏ¢
+	// ok è¾“å‡ºç¼“å†²åŒºä¿¡æ¯
 	void debug(bool isContent);
 
-private:						// ×ÔÓÃ·½·¨£¬²éÕÒ¿éÏà¹Ø£¬LRU
-								// ok °´offsetÔÚ»º´æºÍÎÄ¼şÖĞ²éÕÒ¿é£¬²¢´æÈë»º´æ
+private:						// è‡ªç”¨æ–¹æ³•ï¼ŒæŸ¥æ‰¾å—ç›¸å…³ï¼ŒLRU
+	// ok æŒ‰offsetåœ¨ç¼“å­˜å’Œæ–‡ä»¶ä¸­æŸ¥æ‰¾å—ï¼Œå¹¶å­˜å…¥ç¼“å­˜
 	Block& findBlock(int offset);
 
-private:						// ×ÔÓÃ£¬¸üĞÂ±íË÷Òı.blk
-								// ok ¶ÁÈ¡dbFileµÄ±í¿éË÷ÒıÎÄ¼ş, ÈôÊ§°ÜÔòĞÂ½¨Ò»¸ö
+private:						// è‡ªç”¨ï¼Œæ›´æ–°è¡¨ç´¢å¼•.blk
+	// ok è¯»å–dbFileçš„è¡¨å—ç´¢å¼•æ–‡ä»¶, è‹¥å¤±è´¥åˆ™æ–°å»ºä¸€ä¸ª
 	void readDbInfo();
-	// ok Ğ´Ë÷ÒıÎÄ¼ş
+	// ok å†™ç´¢å¼•æ–‡ä»¶
 	void writeDbInfo();
 
-public:							// RecordManagerÊ¹ÓÃ
-								// ok ·µ»ØtableNameµÄËùÓĞ¿éºÅ
+public:							// RecordManagerä½¿ç”¨
+	// ok è¿”å›tableNameçš„æ‰€æœ‰å—å·
 	vector<int> getTableBlocks(string tableName);
-	// ok ¸øtableNameÌí¼ÓÒ»¸öĞÂ¿é,Èô²»ÔÚfirstLastÖĞÒ²Ìí¼ÓÖÁÆäÖĞ
+	// ok ç»™tableNameæ·»åŠ ä¸€ä¸ªæ–°å—,è‹¥ä¸åœ¨firstLastä¸­ä¹Ÿæ·»åŠ è‡³å…¶ä¸­
 	Block& newBlock(string tableName);
 	// ok
-	/*+*/Block& getBlocks(int offset);
+/*+*/Block& getBlocks(int offset);
 	// ok
-	/*+*/void storeBlocks(int offset, Block& block);
+/*+*/void storeBlocks(int offset, Block& block);
 
 
 
-public:						// IndexManagerÊ¹ÓÃ
-							// TODO ·µ»ØindexNameµÄËùÓĞ¿éÆ«ÒÆÁ¿
+public:						// IndexManagerä½¿ç”¨
+	// TODO è¿”å›indexNameçš„æ‰€æœ‰å—åç§»é‡
 	vector<int> getIndexBlocks(string indexName);
-	// ¸øtableNameÌí¼ÓÒ»¸öĞÂ¿é
+	// ç»™tableNameæ·»åŠ ä¸€ä¸ªæ–°å—
 	Block& newIndexBlock(string indexName);
 	// TODO
-	/*+*/Block& getIndexOneBlock(string indexName, int offset);
+/*+*/Block& getIndexOneBlock(string indexName, int offset);
 	// 
-	/*+*/void writeIndexData(string indexName, char* content, int length);
+/*+*/void writeIndexData(string indexName, char* content, int length);
 
-	/*+*/void writeIndexData(string indexName, int offset, char* content, int length);
+/*+*/void writeIndexData(string indexName, int offset,char* content, int length);
 };
 
 #endif
