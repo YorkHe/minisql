@@ -24,6 +24,8 @@ tableName[MAX_TABLE_NAME]  Firstoffset[4]  Lastoffset[4]
 #ifndef _BUFFER_H_
 #define _BUFFER_H_
 
+#define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
+
 #include "block.h"
 #include "utility.h"
 

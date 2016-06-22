@@ -17,7 +17,7 @@ void RecordManager::push(Row& tuple, Results& results, vector<int> col_name_pos)
 }
 
 template <class T>
-bool RecordManager::testCondition(T value1, T value2)
+bool RecordManager::testCondition(T value1, T value2, int cond_condition)
 {
 	switch (cond_condition)
 	{
@@ -79,19 +79,19 @@ bool RecordManager::checkConditions(Row& tuple, vector<Attr>& attr_list, Conditi
 			{
 				int value1 = atoi(tuple.col[pos].c_str());
 				int value2 = atoi(cond_right.c_str());
-				return testCondition<int>(value1, value2);
+				return testCondition<int>(value1, value2, cond_condition);
 			}
 		case TYPE_FLOAT:
 			{
 				float value1 = atof(tuple.col[pos].c_str());
 				float value2 = atof(cond_right.c_str());
-				return testCondition<float>(value1, value2);
+				return testCondition<float>(value1, value2, cond_condition);
 			}
 		case TYPE_CHAR:
 			{
 				string value1 = tuple.col[pos];
 				string value2 = cond_right;
-				return testCondition<string>(value1, value2);
+				return testCondition<string>(value1, value2, cond_condition);
 			}
 		}
 	}
@@ -236,7 +236,7 @@ CError RecordManager::selectRecord(vector<string> attr_name, Condition cond)
 
 
 
-	if (attr_name[0].compare("*"))
+	if (attr_name[0] == "*")
 	{
 		attr_name.clear();
 		for (auto attr: attr_list)
@@ -275,6 +275,8 @@ CError RecordManager::selectRecord(vector<string> attr_name, Condition cond)
 
 		string first_index = index_attr[0];
 
+		//TODO: INDEX
+
 	}else
 	{
 		block_len = 4096 / tuple_len;
@@ -304,15 +306,18 @@ CError RecordManager::selectRecord(vector<string> attr_name, Condition cond)
 			}
 		}
 	}
+
+	return CError(ERR_SUCCESS, "");
 }
 
 CError RecordManager::deleteRecord(Condition cond)
 {
-
+	return CError(ERR_SUCCESS, "");
 }
 
 CError RecordManager::insertRecord(Tuple tuple)
 {
+	return CError(ERR_SUCCESS, "");
 }
 
 void RecordManager::printAll(std::ostream& out)
@@ -329,9 +334,4 @@ void RecordManager::printLimit(std::ostream& out, int from, int count)
 	{
 		out << "[" << this->result[i].attr_name << "]" << this->result[i].value << std::endl;
 	}
-}
-
-int main()
-{
-	return 0;
 }

@@ -8,6 +8,39 @@
 
 namespace fs = boost::filesystem;
 
+void CatalogManager::readIndex(fstream &f, map<string, pair<string, string>> &index)
+{
+	int index_num;
+	char buf[MAX_CHAR_LENGTH];
+	string index_name;
+	pair<string, string> pair;
+	f.read(reinterpret_cast<char*> (&index_num), sizeof(int));
+	for (int i = 0; i<index_num; i++)
+	{
+		f.read(reinterpret_cast<char*> (buf), MAX_CHAR_LENGTH);
+		index_name = buf;
+		f.read(reinterpret_cast<char*> (buf), MAX_CHAR_LENGTH);
+		pair.first = buf;
+		f.read(reinterpret_cast<char*> (buf), MAX_CHAR_LENGTH);
+		pair.second = buf;
+
+		index[index_name] = pair;
+	}
+}
+
+void CatalogManager::writeIndex(fstream &f, map<string, pair<string, string>> &index)
+{
+	int index_num = index.size();
+	f.write(reinterpret_cast<char*> (&index_num), MAX_CHAR_LENGTH);
+	for (auto i : index)
+	{
+		f.write(i.first.c_str(), MAX_CHAR_LENGTH);
+		f.write(i.second.first.c_str(), MAX_CHAR_LENGTH);
+		f.write(i.second.second.c_str(), MAX_CHAR_LENGTH);
+	}
+}
+
+
 void CatalogManager::writeHead(fstream &f, int& t_num)
 {
 	f.write(reinterpret_cast<char*>(&t_num), sizeof(int));
@@ -201,31 +234,31 @@ CError CatalogManager::createTable(string DB_name, string table_name, vector<Att
 }
 
 
-CError CatalogManager::createIndex(string DB_name, string table_name, string attr_name, table &target_table)
+CError CatalogManager::createIndex(string DB_name, string table_name, string attr_name, string index_name)
 {
 	table tmp_table;
 	if (!checkDatabaseExists(DB_name))
 	{
 		throw CError(ERR_DB_NOT_EXISTS, "Database Not Exists");
-		return;
 	}
 
 	if(!checkTableExists(DB_name, table_name))
 	{
 		throw CError(ERR_TAB_NOT_EXISTS, "Table Not Exists");
-		return;
 	}
 
 	fstream f;
 	f.open(DB_FILE(DB_name) + ".list", ios::in | ios::out | ios::binary);
 
 	int t_num;
+	int pos = 0;
 
 	f.seekg(0, ios::beg);
 	readHead(f, t_num);
 
 	for (int i = 0; i<t_num; i++)
 	{
+		pos = f.tellg();
 		readTable(f, tmp_table);
 		if (tmp_table.name == table_name)
 			break;
@@ -233,7 +266,7 @@ CError CatalogManager::createIndex(string DB_name, string table_name, string att
 
 	bool flag = false;
 
-	for(auto attr:tmp_table.attr_list)
+	for(auto &attr:tmp_table.attr_list)
 	{
 		if (attr.name == attr_name)
 		{
@@ -242,6 +275,8 @@ CError CatalogManager::createIndex(string DB_name, string table_name, string att
 			{
 				throw CError(ERR_IDX_EXISTS, "Attribute " + attr_name + " already has index!");
 			}
+			attr.indexed = true;
+			break;
 		}
 	}
 
@@ -250,7 +285,23 @@ CError CatalogManager::createIndex(string DB_name, string table_name, string att
 		throw CError(ERR_ATTR_NOT_EXISTS, "Attribute " + attr_name + " doesn't exists");
 	}
 
-	target_table = tmp_table;
+	f.seekp(pos);
+	writeTable(f, tmp_table);
+
+	f.close();
+	f.open(DB_FILE(DB_name) + ".idx", ios::in | ios::out | ios::binary);
+
+	map<string, pair<string, string> > index;
+	f.seekg(0, ios::beg);
+	readIndex(f, index);
+
+	index[attr_name] = pair<string, string> (table_name, index_name);
+
+	writeIndex(f, index);
+
+	f.close();
+
+	return CError(ERR_SUCCESS, "");
 }
 
 CError CatalogManager::dropDatabase(string DB_name)
@@ -327,7 +378,7 @@ CError CatalogManager::dropTable(string DB_name, string table_name)
 }
 
 
-CError CatalogManager::dropIndex(string DB_name, string table_name, string attr_name, table &target_table)
+CError CatalogManager::dropIndex(string DB_name, string index_name)
 {
 	table tmp_table;
 	if (!checkDatabaseExists(DB_name))
@@ -335,20 +386,26 @@ CError CatalogManager::dropIndex(string DB_name, string table_name, string attr_
 		throw CError(ERR_DB_NOT_EXISTS, "Database not exists");
 	}
 
-	if (!checkTableExists(DB_name, table_name))
-	{
-		throw CError(ERR_TAB_NOT_EXISTS, "Table not exists");
-	}
-
+	map<string, pair<string, string> > index;
+	
 	fstream f;
-	f.open(TABLE_PATH(DB_name, table_name) + "/" + (table_name + ".tabconf"), ios::in | ios::out | ios::binary);
+	f.open(DB_FILE(DB_name) + ".idx", ios::in | ios::out | ios::binary);
+	f.seekg(0, ios::beg);
+	readIndex(f, index);
+
+	string table_name = index[index_name].first;
+	string attr_name = index[index_name].second;
+
+	f.open(DB_FILE(DB_name) + ".list", ios::in | ios::out | ios::binary);
 
 	int t_num;
+	int pos = 0;
 	f.seekg(0, ios::beg);
 	readHead(f, t_num);
 
 	for (int i = 0; i < t_num; i++)
 	{
+		pos = f.tellg();
 		readTable(f, tmp_table);
 		if (tmp_table.name == table_name)
 			break;
@@ -356,7 +413,7 @@ CError CatalogManager::dropIndex(string DB_name, string table_name, string attr_
 
 	bool flag = false;
 
-	for (auto attr:tmp_table.attr_list)
+	for (auto &attr:tmp_table.attr_list)
 	{
 		if (attr.name == attr_name)
 		{
@@ -365,16 +422,18 @@ CError CatalogManager::dropIndex(string DB_name, string table_name, string attr_
 			{
 				throw CError(ERR_IDX_NOT_EXISTS, "Attribute " + attr_name + " Doesn't Have Index!");
 			}
+			attr.indexed = false;
 			break;
 		}
 	}
+
+	writeTable(f, tmp_table);
+
 
 	if (!flag)
 	{
 		throw CError(ERR_ATTR_NOT_EXISTS, "Attribute " + attr_name + "Doesn't Exists");
 	}
-
-	target_table = tmp_table;
 
 	return CError(ERR_SUCCESS, "");
 }
@@ -401,6 +460,32 @@ CError CatalogManager::emptyTable(string DB_name, string table_name)
 	}
 }
 
+vector<string> CatalogManager::getAllAttributes(string DB_name, string table_name)
+{
+	vector<string> ret;
+	table tmp_table;
+
+	fstream f(DB_FILE(DB_name), ios::in| ios::out| ios::binary);
+
+	int t_num;
+
+	readHead(f, t_num);
+
+	for (int i = 0; i < t_num; i++)
+	{
+		readTable(f, tmp_table);
+		if (tmp_table.name == table_name)
+			break;
+	}
+
+	vector<Attr> attr_list = tmp_table.attr_list;
+	for(auto attr : attr_list)
+	{
+		ret.push_back(attr.name);
+	}
+
+	return ret;
+}
 
 /*
 vector<string> CatalogManager::getAllIndexes(string DB_name, string table_name)
@@ -435,5 +520,6 @@ CError CatalogManager::denotePrimeKey(string DB_name, string table_name, string 
 CError CatalogManager::useDatabase(string DB_name)
 {
 	this->DB = DB_name;
+	return CError(ERR_SUCCESS, "");
 }
 

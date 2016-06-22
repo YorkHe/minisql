@@ -85,17 +85,15 @@ enum RELATION {
 #define TYPE_FLOAT 3
 #define TYPE_NULL 4
 
-typedef struct _Element {
+class Element{
+public:
 	std::string attr_name;
 	std::string value;
-}Element;
-
-struct Tuple {
-	Element* element;
 };
 
-struct Index {
-
+class Tuple {
+public:
+	std::vector<Element> element;
 };
 
 class table
