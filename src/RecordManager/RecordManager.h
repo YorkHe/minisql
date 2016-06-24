@@ -5,11 +5,7 @@
 
 class RecordManager{
 public:
-	RecordManager(string db_name, string table_name)
-	{
-		Table.dbname = db_name;
-		Table.name = table_name;
-	}
+	RecordManager(string db_name, string table_name);
 	RecordManager(table t) :Table(t) {};
 	RecordManager(){};
 	void push(Row& tuple, Results& results, vector<int> col_name_pos);
@@ -19,6 +15,7 @@ public:
 	CError writeBlock(Block& blocks, int j, int tuple_length, vector<Attr>& attrList, vector<string>& values);
 	void getOneTuple(Block& blocks, int j, int tuple_length, vector<Attr>& attr_list, Row& tuple);
 	CError selectRecord(vector<string> attr_name, Condition cond);
+	CError resultOutput(Results res);
 	CError selectRecord(Condition cond);
 
 	CError deleteRecord(Condition cond);

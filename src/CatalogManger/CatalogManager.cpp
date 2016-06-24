@@ -71,6 +71,8 @@ void CatalogManager::readTable(fstream &f, table& t)
 		readAttr(f, tmp_attr);
 		t.attr_list.push_back(tmp_attr);
 	}
+
+	cout << t.name << " " << t.dbname << " " << t.attr_num << endl;
 }
 
 void CatalogManager::writeTable(fstream &f, table& t)
@@ -169,6 +171,11 @@ CError CatalogManager::createTable(string DB_name, string table_name, vector<Att
 {
 	table tmp_table;
 
+	for (auto attr:attrs)
+	{
+		cout << attr.name << " " << attr.type_id << endl;
+	}
+
 	if (!checkDatabaseExists(DB_name))
 	{
 		throw CError(ERR_DB_NOT_EXISTS, "Database " + DB_name + "not exists");
@@ -217,7 +224,7 @@ CError CatalogManager::createTable(string DB_name, string table_name, vector<Att
 
 	tmp_table.attr_num = attrs.size();
 	fstream f;
-	f.open(DB_name + ".list", ios::in | ios::out | ios::beg);
+	f.open(DB_FILE(DB_name) + ".list", ios::in | ios::out | ios::beg);
 
 	int t_num;
 
@@ -339,7 +346,7 @@ CError CatalogManager::dropTable(string DB_name, string table_name)
 		throw CError(ERR_TAB_NOT_EXISTS, "Table Not Exists");
 
 	fstream f;
-	f.open(DB_name + ".list", ios::in | ios::out | ios::binary);
+	f.open(DB_FILE(DB_name) + ".list", ios::in | ios::out | ios::binary);
 	int t_num;
 
 	f.seekg(0, ios::beg);
@@ -465,15 +472,18 @@ vector<string> CatalogManager::getAllAttributes(string DB_name, string table_nam
 	vector<string> ret;
 	table tmp_table;
 
-	fstream f(DB_FILE(DB_name), ios::in| ios::out| ios::binary);
+	fstream f(DB_FILE(DB_name) + ".list", ios::in| ios::out| ios::binary);
 
 	int t_num;
+
+	f.seekg(0, ios::beg);
 
 	readHead(f, t_num);
 
 	for (int i = 0; i < t_num; i++)
 	{
 		readTable(f, tmp_table);
+		cout << tmp_table.name << endl;
 		if (tmp_table.name == table_name)
 			break;
 	}

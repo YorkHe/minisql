@@ -3,10 +3,13 @@
 #include <string>
 #include <vector>
 
+#define USED 1
+#define UNUSED 0 
+
 #define MAX_CHAR_LENGTH 32
 #define FILE_PAGESIZE 4096
 
-#define DB_PATH(DB_NAME) DATABASE_FOLDER + DB_NAME
+#define DB_PATH(DB_NAME) DATABASE_FOLDER + DB_NAME + "/"
 #define DB_FILE(DB_NAME) DATABASE_FOLDER + DB_NAME + "/" + DB_NAME
 
 #define TABLE_PATH(DB_NAME, TABLE_NAME) DATABASE_FOLDER	 + DB_NAME + "/" + TABLE_NAME

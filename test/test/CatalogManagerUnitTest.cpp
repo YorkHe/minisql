@@ -26,7 +26,8 @@ BOOST_AUTO_TEST_CASE(CatalogManager_CreateDatabase)
 	CatalogManager cm;
 	
 
-	fs::path db_file_path(DATABASE_FOLDER + db_name + ("/" + db_name + ".db"));
+	fs::path db_path(DB_PATH(db_name));
+	fs::path db_file_path(DB_FILE(db_name) + ".list");
 
 	cm.createDatabase(db_name);
 
@@ -44,23 +45,15 @@ BOOST_AUTO_TEST_CASE(CatalogManager_CreateTable)
 	CError res = cm.createTable("db", "table", attrs);
 	BOOST_CHECK(res.err_code == ERR_DB_NOT_EXISTS);
 	*/
-	cm.createDatabase("db");
+	cm.createDatabase(db_name);
 	attrs.empty();
 	attrs.push_back(attr);
 
-	CError res2 = cm.createTable("db", "table", attrs);
+	CError res2 = cm.createTable(db_name, table_name, attrs);
 
 	
-	
-	fs::path db_path(DATABASE_FOLDER + std::string("db"));
-	fs::path table_path(DATABASE_FOLDER + std::string("db/table/table.tabconf"));
-	fs::path tabledata_path(DATABASE_FOLDER + std::string("db/table/table.data"));
-	
-	BOOST_CHECK(fs::exists(table_path));
-	BOOST_CHECK(fs::exists(tabledata_path));
-
 	cm.dropDatabase(db_name);
-	//fs::remove_all(db_path);
+	fs::remove_all(db_path);
 
 }
 

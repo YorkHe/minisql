@@ -19,6 +19,7 @@ BufferManager::BufferManager(string name)
 		infoFile.open(infoFileName, std::ios::in | std::ios::out | std::ios::trunc);
 	}
 	readDbInfo();
+
 }
 
 /**
@@ -28,6 +29,8 @@ BufferManager::~BufferManager()
 {
 	writeAllBlocks();
 	writeDbInfo();
+	infoFile.close();
+	dbFile.close();
 }
 
 /**
@@ -87,11 +90,10 @@ void BufferManager::writeBlock(Block& block)
 
 void BufferManager::writeAllBlocks()
 {
-	for (list<Block>::iterator i = buffer.begin(); i != buffer.end(); ++i)
+	for (auto block : this->buffer)
 	{
-		writeBlock(*i);
+		writeBlock(block);
 	}
-	return;
 }
 
 
@@ -134,9 +136,9 @@ void BufferManager::readDbInfo()
 	{
 		infoFile.read(tableName, MAX_TABLE_NAME);
 		s = tableName;
-		infoFile.read(reinterpret_cast<char*>(offset), sizeof(int));
+		infoFile.read(reinterpret_cast<char*>(&offset), sizeof(int));
 		firstBlock.insert(pair<string, int>(s, offset));
-		infoFile.read(reinterpret_cast<char*>(offset), sizeof(int));
+		infoFile.read(reinterpret_cast<char*>(&offset), sizeof(int));
 		lastBlock.insert(pair<string, int>(s, offset));
 	}
 }
@@ -147,6 +149,7 @@ void BufferManager::writeDbInfo()
 	// Çå¿ÕÎÄ¼þ
 	infoFile.close();
 	infoFile.open(infoFileName, std::fstream::out | std::fstream::in | std::fstream::trunc);
+
 	for (
 		hash_map<string, int>::iterator i = firstBlock.begin(), j = lastBlock.begin();
 		i != firstBlock.end();
@@ -155,7 +158,7 @@ void BufferManager::writeDbInfo()
 	{
 		//cout << (char *)((i->first).c_str()) << (i->first).size() << endl;
 		//cout << (i->second) << endl;
-		infoFile.write((i->first).c_str(), (i->first).size());
+		infoFile.write((i->first).c_str(), MAX_TABLE_NAME);
 		infoFile.write(reinterpret_cast<char *>(&(i->second)), sizeof(int));
 		infoFile.write(reinterpret_cast<char *>(&(j->second)), sizeof(int));
 	}

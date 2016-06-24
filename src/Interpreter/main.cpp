@@ -5,6 +5,7 @@ using namespace std;
 
 int main()
 {
+	char c;
 	char input[500];
 	memset(input,'\0',sizeof(input));
 	cout<<"Welcome to use MiniSQL!"<<endl<<"-------------------------"<<endl<<endl;
@@ -12,19 +13,21 @@ int main()
 	statement SQL;
 	SQL.num=-1;
 
+	cout << "MinSQL >";
 	while(1)
 	{
-		cout<<"MinSQL->";
 		int t=0;
 		fflush(stdin);
-		while(cin.peek()!=';')
+		while((c = cin.get())!=';')
 		{
-			if((input[t++]=cin.get()) == '\n')
-				cout<<"MinSQL->";
+			if((input[t++]=c) == '\n')
+				cout<<"MinSQL >";
 		}
 		fflush(stdin);
 
 		SQL=Read_Interpreter(input);   //将用户输入解析成内置语句
+
+		cout << "SQL" << SQL.num << endl;
 
 		if(SQL.num==0)                   //如果输入错误则返回错误原因，并重置，等待下一个命令的输入
 		{

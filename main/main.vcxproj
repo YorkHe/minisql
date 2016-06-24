@@ -122,6 +122,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\src\API\API.h" />
+    <ClInclude Include="..\src\BPTree.h" />
     <ClInclude Include="..\src\BufferManager\block.h" />
     <ClInclude Include="..\src\BufferManager\BufferManager.h" />
     <ClInclude Include="..\src\CatalogManger\CatalogManger.h" />
@@ -132,6 +133,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\API\API.cpp" />
+    <ClCompile Include="..\src\BPTree.cpp" />
     <ClCompile Include="..\src\BufferManager\block.cpp" />
     <ClCompile Include="..\src\BufferManager\BufferManager.cpp" />
     <ClCompile Include="..\src\CatalogManger\CatalogManager.cpp" />

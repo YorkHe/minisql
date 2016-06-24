@@ -6,6 +6,39 @@
 #include <sstream>
 #include <map>
 
+RecordManager::RecordManager(string db_name, string table_name)
+{
+	table tmp_table;
+	Table.dbname = db_name;
+	Table.name = table_name;
+
+	fstream f;
+	f.open(DB_FILE(db_name) + ".list", ios::in | ios::out | ios::binary);
+
+	CatalogManager CM;
+
+	int t_num;
+
+	f.seekg(0, ios::beg);
+	CM.readHead(f, t_num);
+
+	cout << t_num << endl;
+
+	for (int i =0; i < t_num; i++)
+	{
+		CM.readTable(f, tmp_table);
+
+		cout << tmp_table.name << endl;
+
+		if (tmp_table.name == table_name)
+		{
+			Table = tmp_table;
+			break;
+		}
+	}
+
+}
+
 void RecordManager::push(Row& tuple, Results& results, vector<int> col_name_pos)
 {
 	Row row;
@@ -147,7 +180,7 @@ CError RecordManager::writeBlock(Block& blocks, int j, int tuple_length, vector<
 		}
 	}
 
-	blocks.content[j * tuple_length] = 1;
+	blocks.content[j * tuple_length] = USED;
 	blocks.isDirty = true;
 
 	return CError(ERR_SUCCESS, "");
@@ -218,6 +251,7 @@ CError RecordManager::selectRecord(vector<string> attr_name, Condition cond)
 	Results results;
 	bool indexed = false;
 
+	CatalogManager CM;
 
 	BufferManager BM(Table.dbname);
 
@@ -235,15 +269,25 @@ CError RecordManager::selectRecord(vector<string> attr_name, Condition cond)
 	Row one_tuple;
 
 
+	cout << attr_name[0] << endl;
 
 	if (attr_name[0] == "*")
 	{
 		attr_name.clear();
 		for (auto attr: attr_list)
 		{
+			cout << attr.name << endl;
 			attr_name.push_back(attr.name);
 		}
 	}
+
+	
+	for (auto attr: attr_name)
+	{
+		cout << attr.c_str() << " ";
+	}
+
+	cout << endl;
 
 	attr_name_pos.clear();
 
@@ -285,7 +329,7 @@ CError RecordManager::selectRecord(vector<string> attr_name, Condition cond)
 			Block& blocks = BM.getBlocks(i);
 			for (int j = 0; j < block_len; j++)
 			{
-				if (blocks.content[j*tuple_len] == 1)
+				if (blocks.content[j*tuple_len] != UNUSED)
 				{
 					Row tuple;
 					getOneTuple(blocks, j, tuple_len, attr_list, tuple);
@@ -307,6 +351,22 @@ CError RecordManager::selectRecord(vector<string> attr_name, Condition cond)
 		}
 	}
 
+	resultOutput(results);
+
+
+	return CError(ERR_SUCCESS, "");
+}
+
+CError RecordManager::resultOutput(Results res)
+{
+	for (auto row: res.row)
+	{
+		for (auto attr : row.col)
+		{
+			cout << attr << "\t" << flush;
+		}
+		cout << endl;
+	}
 	return CError(ERR_SUCCESS, "");
 }
 
@@ -317,7 +377,96 @@ CError RecordManager::deleteRecord(Condition cond)
 
 CError RecordManager::insertRecord(Tuple tuple)
 {
-	return CError(ERR_SUCCESS, "");
+	
+	long num = 0;
+	Row row;
+	Results results;
+
+	BufferManager BM(Table.dbname);
+
+	string table_name = Table.name;
+	vector<Attr> attr_list = Table.attr_list;
+
+	vector<int> block_vector = BM.getTableBlocks(table_name);
+
+	int block_length;
+	int tuple_length = Table.rec_length + 1;
+
+	Row one_tuple;
+	
+	int int_num;
+	float float_num;
+	string str;
+
+	block_length = 4096 / tuple_length;
+
+	int p;
+
+	int block_id;
+	int record_id;
+
+	cout << "INSERT" << endl;
+
+	vector<string> value_vector;
+
+	cout << tuple.element[0].value << endl;
+
+	for (auto attr : tuple.element)
+	{
+		cout << "value" << attr.value << endl;
+		value_vector.push_back(attr.value);
+	}
+
+	int i;
+	for (i = 0; i < block_vector.size(); i++)
+	{
+		Block &blocks = BM.getBlocks(i);
+		p = 1;
+
+		for (int j = 0; j < block_length; j++ )
+		{
+			if (blocks.content[j * tuple_length] == UNUSED)
+			{
+				CError err = writeBlock(blocks, j, tuple_length, attr_list, value_vector);
+
+				if (err.err_code == ERR_SUCCESS)
+				{
+					blocks.content[j * tuple_length] = USED;
+					blocks.isDirty = true;
+					blocks.contentSize += tuple_length;
+
+					BM.storeBlocks(i, blocks);
+					block_id = i;
+					record_id = j;
+					return err;
+				}
+				else
+					return CError(ERR_SUCCESS, "");
+			}
+		}
+	}
+
+	if (block_vector.size() == 0)
+	{
+		Block& block = BM.newBlock(table_name);
+		CError err = writeBlock(block, 0, tuple_length, attr_list, value_vector);
+		if (err.err_code == ERR_SUCCESS)
+		{
+			block.contentSize += tuple_length;
+			block.content[0] = USED;
+			block.isDirty = true;
+			BM.storeBlocks(i, block);
+
+			return err;
+		}
+	}
+
+	if (num == 0)
+	{
+		return CError(ERR_SUCCESS, "");
+	}
+
+	return CError(ERR_DB_UNKNOWN, "Inserting Failed For Unknown Reason.");
 }
 
 void RecordManager::printAll(std::ostream& out)

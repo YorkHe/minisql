@@ -192,6 +192,7 @@ void Excute_SQL(statement SQL, string& name_of_database) //结合Record Manager，I
 		{
 			element.attr_name = tmp[i];
 			element.value = SQL.statement3.Insert_values[i].value;
+			cout << element.attr_name << " " << element.value << endl;
 			tmp_tuple.element.push_back(element);
 		}
 
@@ -233,7 +234,7 @@ void Excute_SQL(statement SQL, string& name_of_database) //结合Record Manager，I
 	}
 	else if (SQL.num == 1)//选择语句
 	{
-		RecordManager record(name_of_database, SQL.statement2.table_name);
+		RecordManager record(name_of_database, SQL.statement1.table_name);
 		vector<string> star;
 		star.push_back("*");
 		if (SQL.statement1.condition_num == 0)
@@ -396,7 +397,7 @@ void Excute_SQL(statement SQL, string& name_of_database) //结合Record Manager，I
 		try
 		{
 			Is_Error = Catalog.createTable(name_of_database, SQL.statement5.table_name, attr);
-			if (Is_Error.err_code)
+			if (Is_Error.err_code != ERR_SUCCESS)
 			{
 				cout << Is_Error.description;
 			}
